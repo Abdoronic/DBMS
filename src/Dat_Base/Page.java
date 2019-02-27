@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
 
-
 public class Page implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
@@ -17,17 +16,17 @@ public class Page implements Serializable {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void addRecord(Hashtable<String, Object> record) {
+	public boolean addRecord(Hashtable<String, Object> record) {
 		Comparable insertedKey = (Comparable)record.get(primaryKey);
 		for(int i = 0; i < page.size(); i++) {
 			Hashtable<String, Object> currRecord = page.get(i);
 			Comparable currKey = (Comparable)currRecord.get(primaryKey);
 			if(insertedKey.compareTo(currKey) < 0) {
 				page.add(i, record);
-				return;
+				return true;
 			}
 		}
-		page.add(record);
+		return false;
 	}
 	
 	public Vector<Hashtable<String, Object>> getRecords(String key, Object value) {
@@ -42,6 +41,10 @@ public class Page implements Serializable {
 		return res;
 	}
 	
+	public Vector<Hashtable<String, Object>> getPage() {
+		return page;
+	}
+
 	public int getSize() {
 		return page.size();
 	}

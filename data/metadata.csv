@@ -1,0 +1,9 @@
+table1,x,java.lang.Integer,False,False
+table1,z,java.lang.Double,False,False
+table1,y,java.lang.String,True,False
+table2,x,java.util.Date,False,False
+table2,z,java.lang.Double,False,False
+table2,y,java.lang.String,True,False
+Student,gpa,java.lang.Double,False,False
+Student,name,java.lang.String,False,False
+Student,id,java.lang.Integer,True,False

@@ -28,6 +28,18 @@ public class DBAppTest {
 		htblColNameType.put("gpa", "java.lang.Double");
 
 		db.createTable(strTableName, "id", htblColNameType);
+		Hashtable<String, Object> in = new Hashtable<>();
+		in.clear();
+		in.put("id", 5);
+		in.put("name", "Manta");
+		in.put("gpa", 1.3);
+		try {
+			db.insertIntoTable(strTableName, in);
+		} catch (Exception e) {
+			System.out.println("ErRoR");
+			// TODO Auto-generated catch block
+			e.printStackTrace(System.err);
+		}
 	}
 
 }

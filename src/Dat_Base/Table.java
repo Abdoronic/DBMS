@@ -20,32 +20,28 @@ public class Table {
 		// Create Folder
 		createFolder(tableName);
 	}
-	public boolean createFolder(String name)
-	{
-		File theDir = new File("./data/"+name);
+
+	public boolean createFolder(String name) {
+		File theDir = new File("./data/" + name);
 
 		// if the directory does not exist, create it
 		boolean result = false;
 		if (!theDir.exists()) {
-		    System.out.println("creating directory: " + theDir.getName());
+			System.out.println("creating directory: " + theDir.getName());
 
-		    try{
-		        theDir.mkdir();
-		        result = true;
-		    } 
-		    catch(SecurityException se){
-		        //handle it
-		    }        
-		    if(result) {    
-		        System.out.println("DIR created");  
-		    }
+			try {
+				theDir.mkdir();
+				result = true;
+			} catch (SecurityException se) {
+				// handle it
+			}
+			if (result) {
+				System.out.println("DIR created");
+			}
 		}
 		return result;
 	}
-//<<<<<<< HEAD
-//=======
-//
-//>>>>>>> 086a7631be2aac84f306923a58b3b4599d7141cd
+
 	@SuppressWarnings("resource")
 	public Page readPage(String path) {
 		try {
@@ -70,16 +66,12 @@ public class Table {
 			e.printStackTrace(System.err);
 		}
 	}
-	public int getPageCount()
-	{
+
+	public int getPageCount() {
 		return this.pageCount;
 	}
-//	public String getPrimayKey()
-//	{
-//		return this.primaryKey;
-//	}
-	public void incPageCount()
-	{
+
+	public void incPageCount() {
 		this.pageCount++;
 	}
 }

@@ -75,19 +75,19 @@ public class DBHelper {
 		return null;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object reflect(String type, String value) throws Exception {
 		try {
 			Class _class = Class.forName(type);
 			Constructor constructor = _class.getConstructor(type.getClass());
 			return constructor.newInstance(value);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			System.out.printf("Error: Problem reflecting %s with value %s\n", type, value);
 			e.printStackTrace(System.err);
 			return null;
 		}
 	}
-	
+
 	public boolean isTypeSupported(String type) {
 		return reflect(type) != null;
 	}

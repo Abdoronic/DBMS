@@ -16,30 +16,36 @@ public class DBApp {
 		this.dbHelper = new DBHelper();
 		this.tables = new Hashtable<>();
 	}
-	
-	public void createTable(String strTableName, String strClusteringKeyColumn, Hashtable<String,String> htblColNameType) throws DBAppException {
-		if(tables.containsKey(strTableName))
+
+	public void createTable(String strTableName, String strClusteringKeyColumn,
+			Hashtable<String, String> htblColNameType) throws DBAppException {
+		if (tables.containsKey(strTableName))
 			throw new DBAppException("Table %s is already created!");
-		Table newTable = new Table(dbHelper, strTableName, strClusteringKeyColumn, htblColNameType);
+
+		for (String type : htblColNameType.values())
+			dbHelper.reflect(type); // Throw Exception if type is not supported
+
+		Table newTable = new Table(dbHelper, strTableName);
 		tables.put(strTableName, newTable);
+
 		try {
 			dbHelper.addToMetaData(strTableName, strClusteringKeyColumn, htblColNameType);
-		} catch(IOException e) {
+		} catch (IOException e) {
 			System.err.printf("Table %s cannot be created!\n", strTableName);
 			System.err.printf("Error while writing to Metadata", strTableName);
 			e.printStackTrace(System.err);
 			tables.remove(strTableName);
 		}
 	}
-	
+
 	public DBHelper getDbHelper() {
 		return dbHelper;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 //		DBApp db = new DBApp();
 		DBHelper db = new DBHelper();
-		
+
 	}
 
 }

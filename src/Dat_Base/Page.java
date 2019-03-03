@@ -14,7 +14,8 @@ public class Page implements Serializable {
 		this.page = new Vector<>();
 		this.primaryKey = primaryKey;
 	}
-	
+	// Page page2=ObjectReader(path);
+	// page2.addRecord(htblColNameValue);
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public boolean addRecord(Hashtable<String, Object> record) {
 		Comparable insertedKey = (Comparable)record.get(primaryKey);

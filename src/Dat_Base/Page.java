@@ -1,26 +1,23 @@
 package Dat_Base;
 
 import java.io.Serializable;
-import java.util.Hashtable;
 import java.util.Vector;
 
 public class Page implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
-	private Vector<Hashtable<String, Object>> page;
-	private String primaryKey;
+	private Vector<Record> page;
 	
-	public Page(String primaryKey) {
+	public Page() {
 		this.page = new Vector<>();
-		this.primaryKey = primaryKey;
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public boolean addRecord(Hashtable<String, Object> record) {
-		Comparable insertedKey = (Comparable)record.get(primaryKey);
+	public boolean addRecord(Record record) {
+		Comparable insertedKey = (Comparable)record.getPrimaryKey();
 		for(int i = 0; i < page.size(); i++) {
-			Hashtable<String, Object> currRecord = page.get(i);
-			Comparable currKey = (Comparable)currRecord.get(primaryKey);
+			Record currRecord = page.get(i);
+			Comparable currKey = (Comparable)currRecord.getPrimaryKey();
 			if(insertedKey.compareTo(currKey) < 0) {
 				page.add(i, record);
 				return true;
@@ -29,11 +26,11 @@ public class Page implements Serializable {
 		return false;
 	}
 	
-	public Vector<Hashtable<String, Object>> getRecords(String key, Object value) {
-		Vector<Hashtable<String, Object>> res = new Vector<>();
+	public Vector<Record> getRecords(String colName, Object value) {
+		Vector<Record> res = new Vector<>();
 		for(int i = 0; i < page.size(); i++) {
-			Hashtable<String, Object> currRecord = page.get(i);
-			Object currValue = currRecord.get(key);
+			Record currRecord = page.get(i);
+			Object currValue = currRecord.getCell(colName);
 			if(currValue.equals(value)) {
 				res.add(currRecord);
 			}
@@ -41,7 +38,7 @@ public class Page implements Serializable {
 		return res;
 	}
 	
-	public Vector<Hashtable<String, Object>> getPage() {
+	public Vector<Record> getPage() {
 		return page;
 	}
 

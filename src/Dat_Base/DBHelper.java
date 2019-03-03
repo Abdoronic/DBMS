@@ -1,10 +1,15 @@
 package Dat_Base;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.util.Date;
+import java.util.Hashtable;
+import java.util.Map;
 
 public class DBHelper {
 	
@@ -14,6 +19,7 @@ public class DBHelper {
 	public DBHelper() {
 		int MaximumRowsCountInPage = 200;
 		try{
+			//Loading DB Configuration file
 			BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "config/DBApp.config"));
 			while(buffer.ready()) {
 				String[] prop = buffer.readLine().split(" : ");
@@ -27,16 +33,31 @@ public class DBHelper {
 				}
 			}
 			buffer.close();
+			
+			//Clearing Metadata file
+			PrintWriter metadataWriter = new PrintWriter(DBPath + "data/metadata.csv");
+			metadataWriter.close();
+			
 		} catch(IOException e) {
-			System.out.println("Error Loading DB Config");
+			System.err.println("Error Loading DB Config and Metadata");
 			e.printStackTrace(System.err);
 		} finally {
 			this.MaximumRowsCountInPage = MaximumRowsCountInPage;
-			
 		}
 	}
 	
-	public Object reflect(String type) throws Exception {
+	public void addToMetaData(String tableName, String primaryKey, Hashtable<String, String> colNameType) throws IOException {
+		File metadata = new File(DBPath + "data/metadata.csv");
+		FileWriter fileWriter = new FileWriter(metadata.getAbsolutePath(), true);
+		PrintWriter metadataWriter = new PrintWriter(fileWriter);
+		for(Map.Entry<String, String> e : colNameType.entrySet()) {
+			String isKey = e.getKey().equals(primaryKey)? "True": "False";
+			metadataWriter.printf("%s,%s,%s,%s,False\n", tableName, e.getKey(), e.getValue(), isKey);
+		}
+		metadataWriter.close();
+	}
+	
+	public Object reflect(String type) throws DBAppException {
 		switch(type) {
 		case "java.lang.Integer": return 0;
 		case "java.lang.String": return "";
@@ -44,8 +65,7 @@ public class DBHelper {
 		case "java.lang.Boolean": return false;
 		case "java.util.Date": return new Date();
 		}
-		System.err.printf("Error: Problem reflecting %s, undefined Type\n", type);
-		return null;
+		throw new DBAppException("Un Supported Data Type " + type);
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes"})

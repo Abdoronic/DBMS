@@ -23,10 +23,10 @@ public class DBApp {
 			throw new DBAppException("Table " + strTableName + " is already created!");
 
 		for (String type : htblColNameType.values())
-			if(!dbHelper.isTypeSupported(type))
+			if (!dbHelper.isTypeSupported(type))
 				throw new DBAppException("Un Supported Data Type " + type);
-		
-		if(!htblColNameType.containsKey(strClusteringKeyColumn))
+
+		if (!htblColNameType.containsKey(strClusteringKeyColumn))
 			throw new DBAppException("Table " + strTableName + " must have a primary key!");
 
 		Table newTable = new Table(dbHelper, strTableName);

@@ -73,18 +73,18 @@ public class DBHelper {
 		}
 		return null;
 	}
-	
+
 	public boolean isTypeSupported(String type) {
 		return reflect(type) != null;
 	}
-	
+
 	public String getTableKey(String tableName) throws IOException {
 		BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
 		String key = null, line, tokens[];
-		while(buffer.ready()) {
+		while (buffer.ready()) {
 			line = buffer.readLine();
 			tokens = line.split(",");
-			if(tokens[0].equals(tableName) && tokens[3].equals("True")) {
+			if (tokens[0].equals(tableName) && tokens[3].equals("True")) {
 				key = tokens[1];
 				break;
 			}
@@ -92,15 +92,15 @@ public class DBHelper {
 		buffer.close();
 		return key;
 	}
-	
+
 	public Hashtable<String, Object> getTableColNameType(String tableName) throws IOException {
 		BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
 		String line, tokens[];
 		Hashtable<String, Object> htbColNameType = new Hashtable<>();
-		while(buffer.ready()) {
+		while (buffer.ready()) {
 			line = buffer.readLine();
 			tokens = line.split(",");
-			if(tokens[0].equals(tableName))
+			if (tokens[0].equals(tableName))
 				htbColNameType.put(tokens[1], reflect(tokens[3]));
 		}
 		buffer.close();

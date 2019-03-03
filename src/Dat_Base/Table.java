@@ -9,12 +9,12 @@ import java.io.ObjectOutputStream;
 
 public class Table {
 
-	private DBHelper db;
+	private DBHelper dbHelper;
 	private String tableName;
 	private int pageCount;
 
-	public Table(DBHelper db, String tableName) {
-		this.db = db;
+	public Table(DBHelper dbHelper, String tableName) {
+		this.dbHelper = dbHelper;
 		this.tableName = tableName;
 		this.pageCount = 0;
 	}

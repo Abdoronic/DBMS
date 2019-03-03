@@ -20,11 +20,14 @@ public class DBApp {
 	public void createTable(String strTableName, String strClusteringKeyColumn,
 			Hashtable<String, String> htblColNameType) throws DBAppException {
 		if (tables.containsKey(strTableName))
-			throw new DBAppException("Table %s is already created!");
+			throw new DBAppException("Table " + strTableName + " is already created!");
 
 		for (String type : htblColNameType.values())
 			if(!dbHelper.isTypeSupported(type))
 				throw new DBAppException("Un Supported Data Type " + type);
+		
+		if(!htblColNameType.containsKey(strClusteringKeyColumn))
+			throw new DBAppException("Table " + strTableName + " must have a primary key!");
 
 		Table newTable = new Table(dbHelper, strTableName);
 		tables.put(strTableName, newTable);
@@ -41,12 +44,6 @@ public class DBApp {
 
 	public DBHelper getDbHelper() {
 		return dbHelper;
-	}
-
-	public static void main(String[] args) throws Exception {
-//		DBApp db = new DBApp();
-		DBHelper db = new DBHelper();
-
 	}
 
 }

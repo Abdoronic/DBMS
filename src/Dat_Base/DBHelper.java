@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
@@ -74,6 +75,19 @@ public class DBHelper {
 		return null;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes"})
+	public Object reflect(String type, String value) throws Exception {
+		try {
+			Class _class = Class.forName(type);
+			Constructor constructor = _class.getConstructor(type.getClass());
+			return constructor.newInstance(value);
+		} catch(Exception e) {
+			System.out.printf("Error: Problem reflecting %s with value %s\n", type, value);
+			e.printStackTrace(System.err);
+			return null;
+		}
+	}
+	
 	public boolean isTypeSupported(String type) {
 		return reflect(type) != null;
 	}

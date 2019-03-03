@@ -17,8 +17,35 @@ public class Table {
 		this.dbHelper = dbHelper;
 		this.tableName = tableName;
 		this.pageCount = 0;
+		// Create Folder
+		createFolder(tableName);
 	}
+	public boolean createFolder(String name)
+	{
+		File theDir = new File("./data/table_name");
 
+		// if the directory does not exist, create it
+		boolean result = false;
+		if (!theDir.exists()) {
+		    System.out.println("creating directory: " + theDir.getName());
+
+		    try{
+		        theDir.mkdir();
+		        result = true;
+		    } 
+		    catch(SecurityException se){
+		        //handle it
+		    }        
+		    if(result) {    
+		        System.out.println("DIR created");  
+		    }
+		}
+		return result;
+	}
+//<<<<<<< HEAD
+//=======
+//
+//>>>>>>> 086a7631be2aac84f306923a58b3b4599d7141cd
 	@SuppressWarnings("resource")
 	public Page readPage(String path) {
 		try {
@@ -42,5 +69,17 @@ public class Table {
 			System.err.println("Error Writing to file");
 			e.printStackTrace(System.err);
 		}
+	}
+	public int getPageCount()
+	{
+		return this.pageCount;
+	}
+//	public String getPrimayKey()
+//	{
+//		return this.primaryKey;
+//	}
+	public void incPageCount()
+	{
+		this.pageCount++;
 	}
 }

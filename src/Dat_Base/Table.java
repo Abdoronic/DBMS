@@ -6,37 +6,32 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Hashtable;
 
 public class Table {
-	
+
 	private DBHelper db;
 	private String tableName;
-	private String primaryKey;
-	private Hashtable<String, String> colNameType;
 	private int pageCount;
-	
-	public Table(DBHelper db, String tableName, String primaryKey, Hashtable<String, String> colNameType) {
+
+	public Table(DBHelper db, String tableName) {
 		this.db = db;
 		this.tableName = tableName;
-		this.primaryKey = primaryKey;
-		this.colNameType = colNameType;
 		this.pageCount = 0;
 	}
-	
+
 	@SuppressWarnings("resource")
 	public Page readPage(String path) {
 		try {
 			FileInputStream fstream = new FileInputStream(path);
 			ObjectInputStream ois = new ObjectInputStream(fstream);
-			return (Page)ois.readObject();
+			return (Page) ois.readObject();
 		} catch (Exception e) {
 			System.err.println("Error Reading from Page");
 			e.printStackTrace(System.err);
 		}
 		return null;
 	}
-	
+
 	public void writePage(String path, Page page) {
 		try {
 			FileOutputStream fstream = new FileOutputStream(new File(path));

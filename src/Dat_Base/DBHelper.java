@@ -58,7 +58,7 @@ public class DBHelper {
 		metadataWriter.close();
 	}
 
-	public Object reflect(String type) throws DBAppException {
+	public Object reflect(String type) {
 		switch (type) {
 		case "java.lang.Integer":
 			return 0;
@@ -71,7 +71,40 @@ public class DBHelper {
 		case "java.util.Date":
 			return new Date();
 		}
-		throw new DBAppException("Un Supported Data Type " + type);
+		return null;
+	}
+	
+	public boolean isTypeSupported(String type) {
+		return reflect(type) != null;
+	}
+	
+	public String getTableKey(String tableName) throws IOException {
+		BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
+		String key = null, line, tokens[];
+		while(buffer.ready()) {
+			line = buffer.readLine();
+			tokens = line.split(",");
+			if(tokens[0].equals(tableName) && tokens[3].equals("True")) {
+				key = tokens[1];
+				break;
+			}
+		}
+		buffer.close();
+		return key;
+	}
+	
+	public Hashtable<String, Object> getTableColNameType(String tableName) throws IOException {
+		BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
+		String line, tokens[];
+		Hashtable<String, Object> htbColNameType = new Hashtable<>();
+		while(buffer.ready()) {
+			line = buffer.readLine();
+			tokens = line.split(",");
+			if(tokens[0].equals(tableName))
+				htbColNameType.put(tokens[1], reflect(tokens[3]));
+		}
+		buffer.close();
+		return htbColNameType;
 	}
 
 	private boolean validDate(int year, int month, int day) {

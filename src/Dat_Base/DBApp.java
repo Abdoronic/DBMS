@@ -23,7 +23,8 @@ public class DBApp {
 			throw new DBAppException("Table %s is already created!");
 
 		for (String type : htblColNameType.values())
-			dbHelper.reflect(type); // Throw Exception if type is not supported
+			if(!dbHelper.isTypeSupported(type))
+				throw new DBAppException("Un Supported Data Type " + type);
 
 		Table newTable = new Table(dbHelper, strTableName);
 		tables.put(strTableName, newTable);

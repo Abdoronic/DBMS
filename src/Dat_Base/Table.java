@@ -22,7 +22,7 @@ public class Table {
 	}
 	public boolean createFolder(String name)
 	{
-		File theDir = new File("./data/table_name");
+		File theDir = new File("./data/"+name);
 
 		// if the directory does not exist, create it
 		boolean result = false;

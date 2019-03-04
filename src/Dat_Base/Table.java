@@ -47,7 +47,9 @@ public class Table {
 		try {
 			FileInputStream fstream = new FileInputStream(path);
 			ObjectInputStream ois = new ObjectInputStream(fstream);
-			return (Page) ois.readObject();
+			Page p=(Page) ois.readObject();
+			ois.close();
+			return p;
 		} catch (Exception e) {
 			System.err.println("Error Reading from Page");
 			e.printStackTrace(System.err);
@@ -73,5 +75,8 @@ public class Table {
 
 	public void incPageCount() {
 		this.pageCount++;
+	}
+	public void setPageCount(int x) {
+		this.pageCount = x;
 	}
 }

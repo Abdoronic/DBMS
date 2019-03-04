@@ -1,10 +1,12 @@
 package Dat_Base;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 public class DBAppTest {
 
-	public static void main(String[] args) throws DBAppException {
+	public static void main(String[] args) throws DBAppException, IOException {
 		DBApp db = new DBApp();
 		Hashtable<String, String> table1 = new Hashtable<>();
 		table1.put("x", "java.lang.Integer");
@@ -28,18 +30,43 @@ public class DBAppTest {
 		htblColNameType.put("gpa", "java.lang.Double");
 
 		db.createTable(strTableName, "id", htblColNameType);
-		Hashtable<String, Object> in = new Hashtable<>();
-		in.clear();
-		in.put("id", 5);
-		in.put("name", "Manta");
-		in.put("gpa", 1.3);
-		try {
-			db.insertIntoTable(strTableName, in);
-		} catch (Exception e) {
-			System.out.println("ErRoR");
-			// TODO Auto-generated catch block
-			e.printStackTrace(System.err);
+		ArrayList<Integer>a=new ArrayList<>();
+		for(int j=45;j>-1;j--)
+		{
+			int i=j;
+			Hashtable<String, Object> in = new Hashtable<>();
+			in.put("id", i);
+			in.put("name", "Manta_"+i);
+			in.put("gpa", 1.3);
+			
+		
+			try {
+				db.insertIntoTable(strTableName, in);
+				a.add(i);
+			} catch (Exception e) {
+				System.out.println("ErRoR");
+				// TODO Auto-generated catch block
+//				e.printStackTrace(System.err);
+				System.out.println(e.getMessage());
+			}
 		}
+		int i=0;
+		while(i<3)
+			System.out.println(db.getTables().get(strTableName).readPage(db.getDbHelper().getDBPath()+"data/"+strTableName+"/"+strTableName+"_"+i++));
+		
+		System.out.println("-------------");
+		
+		for(i=20;i>-1;i--)
+		{
+//			System.out.println("in");
+			Hashtable<String, Object> out = new Hashtable<>();
+			out.put("id", i);
+			db.deleteFromTable(strTableName, out);
+		}
+		i=0;
+		while(i<3)
+			System.out.println(db.getTables().get(strTableName).readPage(db.getDbHelper().getDBPath()+"data/"+strTableName+"/"+strTableName+"_"+i++));
+		
 	}
 
 }

@@ -1,8 +1,11 @@
 package Dat_Base;
 
+import java.io.Serializable;
 import java.util.Hashtable;
 
-public class Record {
+public class Record implements Serializable{
+
+	private static final long serialVersionUID = 1L;
 	private String primaryKey;
 	private Hashtable<String, Object> record;
 	
@@ -23,4 +26,9 @@ public class Record {
 		return record;
 	}
 	
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return record.toString() +" PK= "+primaryKey;
+	}
 }

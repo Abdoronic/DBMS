@@ -10,10 +10,11 @@ import java.lang.reflect.Constructor;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class DBHelper {
 
-	private String DBPath = "/Users/abdulrahmanibrahim/eclipse-workspace/DBMS/";
+	private String DBPath = "D:\\Eclipse\\DBMS\\";
 	private int MaximumRowsCountInPage;
 
 	public DBHelper() {
@@ -115,7 +116,7 @@ public class DBHelper {
 			line = buffer.readLine();
 			tokens = line.split(",");
 			if (tokens[0].equals(tableName))
-				htbColNameType.put(tokens[1], reflect(tokens[3]));
+				htbColNameType.put(tokens[1], reflect(tokens[2]));
 		}
 		buffer.close();
 		return htbColNameType;
@@ -157,4 +158,16 @@ public class DBHelper {
 		return MaximumRowsCountInPage;
 	}
 
+	public boolean matchRecord(Hashtable<String, Object>fromTable ,Hashtable<String, Object>attributSet)
+	{
+		for(Entry<String, Object>e: attributSet.entrySet())
+		{
+			String colName = e.getKey();
+			Object value = e.getValue();
+			if( !fromTable.get(colName).equals(value) )
+				return false;
+		}
+		return true;
+	}
+	
 }

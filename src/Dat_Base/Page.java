@@ -62,7 +62,6 @@ public class Page implements Serializable {
 	
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
 		String s = "start \n";
 		for(Record r:page)
 			s += r.toString()+"\n";

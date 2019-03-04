@@ -14,11 +14,16 @@ import java.util.Map.Entry;
 
 public class DBHelper {
 
-	private String DBPath = "D:\\Eclipse\\DBMS\\";
+	private String DBPath = new File("").getAbsolutePath() + "/";
 	private int MaximumRowsCountInPage;
 
 	public DBHelper() {
-		int MaximumRowsCountInPage = 200;
+		DBPath = new File("").getAbsolutePath() + "/";
+		MaximumRowsCountInPage = 200;
+		loadConfigurations();
+	}
+	
+	public void loadConfigurations() {
 		try {
 			// Loading DB Configuration file
 			BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "config/DBApp.config"));
@@ -36,16 +41,27 @@ public class DBHelper {
 			}
 			buffer.close();
 
-			// Clearing Metadata file
-			PrintWriter metadataWriter = new PrintWriter(DBPath + "data/metadata.csv");
-			metadataWriter.close();
-
 		} catch (IOException e) {
-			System.err.println("Error Loading DB Config and Metadata");
+			System.err.println("Error Loading DB Config");
 			e.printStackTrace(System.err);
-		} finally {
-			this.MaximumRowsCountInPage = MaximumRowsCountInPage;
 		}
+	}
+	
+	public Hashtable<String, Table> getTables() {
+		Hashtable<String, Table> tables = new Hashtable<>();
+		try {
+			BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
+			String[] tokens;
+			while(buffer.ready()) {
+				tokens = buffer.readLine().split(",");
+				tables.put(tokens[0], new Table(tokens[0]));
+			}
+			buffer.close();
+		} catch (IOException e) {
+			System.err.println("Cannot Load tables from Metadata");
+			e.printStackTrace();
+		}
+		return tables;
 	}
 
 	public void addToMetaData(String tableName, String primaryKey, Hashtable<String, String> colNameType)
@@ -158,13 +174,11 @@ public class DBHelper {
 		return MaximumRowsCountInPage;
 	}
 
-	public boolean matchRecord(Hashtable<String, Object>fromTable ,Hashtable<String, Object>attributSet)
-	{
-		for(Entry<String, Object>e: attributSet.entrySet())
-		{
+	public boolean matchRecord(Hashtable<String, Object> fromTable, Hashtable<String, Object> attributSet) {
+		for (Entry<String, Object> e : attributSet.entrySet()) {
 			String colName = e.getKey();
 			Object value = e.getValue();
-			if( !fromTable.get(colName).equals(value) )
+			if (!fromTable.get(colName).equals(value))
 				return false;
 		}
 		return true;

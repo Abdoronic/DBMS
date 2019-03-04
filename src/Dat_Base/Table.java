@@ -28,7 +28,7 @@ public class Table {
 			} catch (SecurityException e) {
 				e.printStackTrace(System.err);
 			}
-			System.out.printf("DIR %s created", tableName);
+			System.out.printf("DIR %s created\n", tableName);
 		}
 		return theDir.listFiles().length;
 	} 

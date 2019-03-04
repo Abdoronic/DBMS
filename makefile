@@ -3,7 +3,7 @@
 all: build-DB run-DBAppTest
 
 build-DB: 
-	javac src/Dat_Base/*.java
+	javac src/Dat_Base/*.java -d bin/Dat_Base/
 
 run-DBAppTest:
 	java -classpath bin/ Dat_Base.DBAppTest

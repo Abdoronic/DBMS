@@ -52,11 +52,11 @@ public class DBAppTest {
 	}
 
 	public static void main(String[] args) throws DBAppException, IOException {
-//		DBApp db = new DBApp();
+		DBApp db = new DBApp();
 		
-//		testCreation(db);
+		testCreation(db);
 		
-//		printPage(db, "Student", 0);
+		printPage(db, "Student", 0);
 
 		
 //		System.out.println(db.getTables());

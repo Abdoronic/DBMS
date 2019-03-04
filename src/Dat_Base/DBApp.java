@@ -3,11 +3,8 @@ package Dat_Base;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -25,7 +22,7 @@ public class DBApp {
 
 	public void init() {
 		this.dbHelper = new DBHelper();
-		this.tables = new Hashtable<>();
+		this.tables = dbHelper.getTables();
 	}
 
 	public void createTable(String strTableName, String strClusteringKeyColumn,
@@ -40,7 +37,7 @@ public class DBApp {
 		if (!htblColNameType.containsKey(strClusteringKeyColumn))
 			throw new DBAppException("Table " + strTableName + " must have a primary key!");
 
-		Table newTable = new Table(dbHelper, strTableName);
+		Table newTable = new Table(strTableName);
 		tables.put(strTableName, newTable);
 
 		try {
@@ -53,17 +50,16 @@ public class DBApp {
 		}
 	}
 
-	public boolean insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue)throws DBAppException 
-	{
+	public boolean insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue)
+			throws DBAppException {
 		Table table = tables.get(strTableName);
 		if (table == null)
 			throw new DBAppException("Table is not found!");
-		
+
 		FileReader fileReader = null;
 		try {
 			fileReader = new FileReader(dbHelper.getDBPath() + "/data/metadata.csv");
 		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		BufferedReader br = new BufferedReader(fileReader);
@@ -89,17 +85,14 @@ public class DBApp {
 				tableCol.add(colInfo);
 			}
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		if (tableCol.isEmpty())
 			throw new DBAppException("Table is not found!");
 
-		Record record = new Record(primaryKey, htblColNameValue);
-		
 		for (Entry<String, Object> e : htblColNameValue.entrySet()) {
 			String colName = e.getKey();
-			String value = e.getValue()+"";
+			String value = e.getValue() + "";
 			Object checkedValue = null;
 			boolean found = false;
 			for (HashMap<String, String> hm : tableCol) {
@@ -108,7 +101,6 @@ public class DBApp {
 					try {
 						checkedValue = dbHelper.reflect(type, value);
 					} catch (Exception e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 					if (checkedValue != null) {
@@ -118,10 +110,13 @@ public class DBApp {
 				}
 			}
 			if (!found)
-				throw new DBAppException("Column "+colName+" does not exist!");
+				throw new DBAppException("Column " + colName + " does not exist!");
 		}
 		// Valid Data to be inserted
 		// We have to insert in the right page
+		htblColNameValue.put("TouchDate", dbHelper.currentDate());
+		Record record = new Record(primaryKey, htblColNameValue);
+		
 		int start = 0;
 		int end = table.getPageCount();
 		boolean added = false;
@@ -129,40 +124,39 @@ public class DBApp {
 		// trying to add the record sequentially
 		while (start < end && !added) {
 			curPage = table.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start);
-			added |= curPage.addRecord(record,dbHelper.getMaximumRowsCountInPage());
+			added |= curPage.addRecord(record, dbHelper.getMaximumRowsCountInPage());
 			start++;
 		}
 
-		if (!added) // we could not insert in any of the original pages, we have to make new page
-		{
+		if (!added) { // we could not insert in any of the original pages, we have to make new page
 			Page newPage = new Page();
-			newPage.addRecord(record , dbHelper.getMaximumRowsCountInPage());
+			newPage.addRecord(record, dbHelper.getMaximumRowsCountInPage());
 			table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + end, newPage);
 			table.incPageCount();
-		}
-		else // we have to check that the page we inserted in did not reach the limit
-		{
+		} else { // we have to check that the page we inserted in did not reach the limit
 			start--; // back to the curPage
 			table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start, curPage);
 			int size = curPage.getSize();
 //			MaximumRowsCountInPage
 			int MaximumRowsCountInPage = dbHelper.getMaximumRowsCountInPage();
-			while (size > MaximumRowsCountInPage) // pushing the extra elments to the last empty page
-			{
+			while (size > MaximumRowsCountInPage) { // pushing the extra elements to the last empty page
 				Record lastRecoed = curPage.getPage().remove(size - 1);
-				table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start, curPage);
+				table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start,
+						curPage);
 				start++;
-				if (start == end) // we need to creat ean extra page
-				{
+				if (start == end) { // we need to create an extra page
 					Page newPage = new Page();
-					newPage.addRecord(lastRecoed ,dbHelper.getMaximumRowsCountInPage());
-					table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + end, newPage);
+					newPage.addRecord(lastRecoed, dbHelper.getMaximumRowsCountInPage());
+					table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + end,
+							newPage);
 					table.incPageCount();
 					break;
 				}
-				Page nextPage = table.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start);
+				Page nextPage = table
+						.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start);
 				nextPage.addRecord(lastRecoed, dbHelper.getMaximumRowsCountInPage());
-				table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start, nextPage);
+				table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start,
+						nextPage);
 				size = nextPage.getSize();
 				curPage = nextPage;
 			}
@@ -171,67 +165,58 @@ public class DBApp {
 	}
 
 	public void deleteFromTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
-	
+
 		Table table = tables.get(strTableName);
 		if (table == null)
 			throw new DBAppException("Table is not found!");
-		
+
 		Hashtable<String, Object> colTableInfo = null;
 		try {
 			colTableInfo = dbHelper.getTableColNameType(strTableName);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		for(Entry<String, Object>e : htblColNameValue.entrySet())
-		{
+		for (Entry<String, Object> e : htblColNameValue.entrySet()) {
 			String colName = e.getKey();
-			if( !colTableInfo.containsKey(colName) )
-				throw new DBAppException("Column ( "+ colName +" ) does not exist");
+			if (!colTableInfo.containsKey(colName))
+				throw new DBAppException("Column ( " + colName + " ) does not exist");
 			Object value = e.getValue();
 			Object type = colTableInfo.get(colName);
-			if( !value.getClass().equals(type.getClass()) )
-				throw new DBAppException("The type of ( "+ value +" ) is not right, must be "+type);
+			if (!value.getClass().equals(type.getClass()))
+				throw new DBAppException("The type of ( " + value + " ) is not right, must be " + type);
 		}
 		// all types are now right
-		
-		int start_read = 0,start_write = 0;
-		int end_read = table.getPageCount() ,end_write = table.getPageCount();
-		Page writePage=new Page();
-		while( start_read < end_read )
-		{
-			Page curPage = table.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_read++);
-			
+
+		int start_read = 0, start_write = 0;
+		int end_read = table.getPageCount(), end_write = table.getPageCount();
+		Page writePage = new Page();
+		while (start_read < end_read) {
+			Page curPage = table
+					.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_read++);
+
 			Vector<Record> v = curPage.getPage();
-			for(int i=0;i<curPage.getSize();i++)
-			{
-				if(!dbHelper.matchRecord(v.get(i).getRecord(), htblColNameValue))
-				{
+			for (int i = 0; i < curPage.getSize(); i++) {
+				if (!dbHelper.matchRecord(v.get(i).getRecord(), htblColNameValue)) {
 					writePage.addRecord(v.get(i), dbHelper.getMaximumRowsCountInPage());
-					if(writePage.getSize() == dbHelper.getMaximumRowsCountInPage())
-					{
-						table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_write++, writePage);
+					if (writePage.getSize() == dbHelper.getMaximumRowsCountInPage()) {
+						table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_"
+								+ start_write++, writePage);
 						writePage = new Page();
 					}
 				}
-				
+
 			}
 		}
-		if(writePage.getSize() > 0)
-			table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_write++, writePage);
-		
+		if (writePage.getSize() > 0)
+			table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_write++,
+					writePage);
+
 		table.setPageCount(start_write);
-		
-		while(start_write < end_write) // delete extra pages
-		{
-			File file = new File(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_write++); 
+
+		while (start_write < end_write) { // delete extra pages
+			File file = new File(
+					dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_write++);
 			file.delete();
-//			try {
-//				System.out.println(Files.deleteIfExists( Paths.get( file.getAbsolutePath() ) ) ) ;
-//			} catch (IOException e1) {
-//				// TODO Auto-generated catch block
-//				e1.printStackTrace();
-//			}
 		}
 	}
 
@@ -239,8 +224,7 @@ public class DBApp {
 		return dbHelper;
 	}
 
-	public Hashtable<String, Table> getTables()
-	{
+	public Hashtable<String, Table> getTables() {
 		return tables;
 	}
 }

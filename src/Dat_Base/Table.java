@@ -9,40 +9,30 @@ import java.io.ObjectOutputStream;
 
 public class Table {
 
-	private DBHelper dbHelper;
 	private String tableName;
 	private int pageCount;
 
-	public Table(DBHelper dbHelper, String tableName) {
-		this.dbHelper = dbHelper;
+	public Table(String tableName) {
 		this.tableName = tableName;
-		this.pageCount = 0;
-		// Create Folder
-		createFolder(tableName);
+		this.pageCount = createFolderAndCountPages();
 	}
 
-	public boolean createFolder(String name) {
-		File theDir = new File("./data/" + name);
+	public int createFolderAndCountPages() {
+		File theDir = new File("./data/" + tableName);
 
 		// if the directory does not exist, create it
-		boolean result = false;
 		if (!theDir.exists()) {
 			System.out.println("creating directory: " + theDir.getName());
-
 			try {
 				theDir.mkdir();
-				result = true;
-			} catch (SecurityException se) {
-				// handle it
+			} catch (SecurityException e) {
+				e.printStackTrace(System.err);
 			}
-			if (result) {
-				System.out.println("DIR created");
-			}
+			System.out.printf("DIR %s created", tableName);
 		}
-		return result;
-	}
+		return theDir.listFiles().length;
+	} 
 
-	@SuppressWarnings("resource")
 	public Page readPage(String path) {
 		try {
 			FileInputStream fstream = new FileInputStream(path);

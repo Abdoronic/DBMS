@@ -17,6 +17,9 @@ public class Record implements Serializable{
 	public Object getPrimaryKey() {
 		return record.get(primaryKey);
 	}
+	public String getPrimaryKeyCN() {
+		return this.primaryKey;
+	}
 	
 	public Object getCell(String colName) {
 		return record.get(colName);

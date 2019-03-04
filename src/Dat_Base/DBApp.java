@@ -50,6 +50,83 @@ public class DBApp {
 		}
 	}
 
+	public void updateTable(String strTableName, String strKey, Hashtable<String, Object> htblColNameValue)
+			throws DBAppException {
+		Table table = tables.get(strTableName);
+		if (table == null)
+			throw new DBAppException("Table is not found!");
+
+		Hashtable<String, Object> colTableInfo = null;
+		try {
+			colTableInfo = dbHelper.getTableColNameType(strTableName);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		for (Entry<String, Object> e : htblColNameValue.entrySet()) {
+			String colName = e.getKey();
+			if (!colTableInfo.containsKey(colName))
+				throw new DBAppException("Column ( " + colName + " ) does not exist");
+			Object value = e.getValue();
+			Object type = colTableInfo.get(colName);
+			if (!value.getClass().equals(type.getClass()))
+				throw new DBAppException("The type of ( " + value + " ) is not right, must be " + type);
+		}
+		// all types are now right
+		// ------------------------------------------------------valid data
+		int start_read = 0;
+		int end_read = table.getPageCount();
+		int counter = 0;
+		boolean keychanged = false;
+		Hashtable<String, Object>tmp=new Hashtable<String, Object>();
+		while (start_read < end_read) {
+			Page curPage = table
+					.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_read++);
+			Vector<Record> v = curPage.getPage();
+			for (int i = 0; i < curPage.getSize(); i++) {
+				if ((v.get(i).getPrimaryKey()+"").equals(strKey)) {
+					counter++;
+//					System.out.println(counter);
+					Hashtable<String, Object> old = v.get(i).getRecord();
+					for (Entry<String, Object> e : htblColNameValue.entrySet()) {
+						String colName = e.getKey();
+//						System.out.println(colName);
+						Object value = e.getValue();
+						if (colName.equals(v.get(i).getPrimaryKeyCN())) {
+							if (!strKey.equals(value)) {
+								keychanged = true;
+								tmp.put(v.get(i).getPrimaryKeyCN(), old.get(v.get(i).getPrimaryKeyCN()));
+							}
+						}
+						if (old.containsKey(colName)) {
+							old.put(colName, htblColNameValue.get(colName));
+						}
+
+						old.put("TouchDate", dbHelper.currentDate());
+//						System.out.println("updated");
+					}
+					if (keychanged) {
+						keychanged = false;
+						old.remove("TouchDate");
+//						System.out.println(tmp);
+						deleteFromTable(strTableName, tmp);
+						insertIntoTable(strTableName, old);
+					}
+					else
+					{
+						table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + (start_read-1), curPage);
+					}
+					
+				}
+			}
+
+		}
+		if (counter == 0) {
+			throw new DBAppException("There is no entry with this key");
+		}
+
+	}
+
 	public boolean insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException {
 		Table table = tables.get(strTableName);
@@ -116,7 +193,7 @@ public class DBApp {
 		// We have to insert in the right page
 		htblColNameValue.put("TouchDate", dbHelper.currentDate());
 		Record record = new Record(primaryKey, htblColNameValue);
-		
+
 		int start = 0;
 		int end = table.getPageCount();
 		boolean added = false;

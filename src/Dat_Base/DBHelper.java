@@ -169,6 +169,16 @@ public class DBHelper {
 	public String getDBPath() {
 		return DBPath;
 	}
+	
+	/**
+	 * 
+	 * @param tableName
+	 * @param pageNumber
+	 * @return The path the page is at or should be at
+	 */
+	public String getPagePath(String tableName, int pageNumber) {
+		return DBPath + "/data/" + tableName + "/" + tableName + "_" + pageNumber;
+	}
 
 	public int getMaximumRowsCountInPage() {
 		return MaximumRowsCountInPage;

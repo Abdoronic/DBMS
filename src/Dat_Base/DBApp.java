@@ -60,7 +60,6 @@ public class DBApp {
 		try {
 			colTableInfo = dbHelper.getTableColNameType(strTableName);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		for (Entry<String, Object> e : htblColNameValue.entrySet()) {
@@ -86,11 +85,9 @@ public class DBApp {
 			for (int i = 0; i < curPage.getSize(); i++) {
 				if ((v.get(i).getPrimaryKey()+"").equals(strKey)) {
 					counter++;
-//					System.out.println(counter);
 					Hashtable<String, Object> old = v.get(i).getRecord();
 					for (Entry<String, Object> e : htblColNameValue.entrySet()) {
 						String colName = e.getKey();
-//						System.out.println(colName);
 						Object value = e.getValue();
 						if (colName.equals(v.get(i).getPrimaryKeyCN())) {
 							if (!strKey.equals(value)) {
@@ -103,12 +100,10 @@ public class DBApp {
 						}
 
 						old.put("TouchDate", dbHelper.currentDate());
-//						System.out.println("updated");
 					}
 					if (keychanged) {
 						keychanged = false;
 						old.remove("TouchDate");
-//						System.out.println(tmp);
 						deleteFromTable(strTableName, tmp);
 						insertIntoTable(strTableName, old);
 					}
@@ -136,8 +131,9 @@ public class DBApp {
 		FileReader fileReader = null;
 		try {
 			fileReader = new FileReader(dbHelper.getDBPath() + "/data/metadata.csv");
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
+		} catch (FileNotFoundException e) {
+			System.err.println("Error Reading metadata");
+			e.printStackTrace();
 		}
 		BufferedReader br = new BufferedReader(fileReader);
 		String curLine = "";
@@ -200,7 +196,7 @@ public class DBApp {
 		Page curPage = null;
 		// trying to add the record sequentially
 		while (start < end && !added) {
-			curPage = table.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start);
+			curPage = table.readPage(dbHelper.getPagePath(strTableName, start));
 			added |= curPage.addRecord(record, dbHelper.getMaximumRowsCountInPage());
 			start++;
 		}
@@ -208,32 +204,28 @@ public class DBApp {
 		if (!added) { // we could not insert in any of the original pages, we have to make new page
 			Page newPage = new Page();
 			newPage.addRecord(record, dbHelper.getMaximumRowsCountInPage());
-			table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + end, newPage);
+			table.writePage(dbHelper.getPagePath(strTableName, end), newPage);
 			table.incPageCount();
 		} else { // we have to check that the page we inserted in did not reach the limit
 			start--; // back to the curPage
-			table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start, curPage);
+			table.writePage(dbHelper.getPagePath(strTableName, start), curPage);
 			int size = curPage.getSize();
 //			MaximumRowsCountInPage
 			int MaximumRowsCountInPage = dbHelper.getMaximumRowsCountInPage();
 			while (size > MaximumRowsCountInPage) { // pushing the extra elements to the last empty page
 				Record lastRecoed = curPage.getPage().remove(size - 1);
-				table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start,
-						curPage);
+				table.writePage(dbHelper.getPagePath(strTableName, start), curPage);
 				start++;
 				if (start == end) { // we need to create an extra page
 					Page newPage = new Page();
 					newPage.addRecord(lastRecoed, dbHelper.getMaximumRowsCountInPage());
-					table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + end,
-							newPage);
+					table.writePage(dbHelper.getPagePath(strTableName, end), newPage);
 					table.incPageCount();
 					break;
 				}
-				Page nextPage = table
-						.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start);
+				Page nextPage = table.readPage(dbHelper.getPagePath(strTableName, start));
 				nextPage.addRecord(lastRecoed, dbHelper.getMaximumRowsCountInPage());
-				table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start,
-						nextPage);
+				table.writePage(dbHelper.getPagePath(strTableName, start), nextPage);
 				size = nextPage.getSize();
 				curPage = nextPage;
 			}
@@ -268,16 +260,14 @@ public class DBApp {
 		int end_read = table.getPageCount(), end_write = table.getPageCount();
 		Page writePage = new Page();
 		while (start_read < end_read) {
-			Page curPage = table
-					.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_read++);
+			Page curPage = table.readPage(dbHelper.getPagePath(strTableName, start_read++));
 
 			Vector<Record> v = curPage.getPage();
 			for (int i = 0; i < curPage.getSize(); i++) {
 				if (!dbHelper.matchRecord(v.get(i).getRecord(), htblColNameValue)) {
 					writePage.addRecord(v.get(i), dbHelper.getMaximumRowsCountInPage());
 					if (writePage.getSize() == dbHelper.getMaximumRowsCountInPage()) {
-						table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_"
-								+ start_write++, writePage);
+						table.writePage(dbHelper.getPagePath(strTableName, start_write++), writePage);
 						writePage = new Page();
 					}
 				}
@@ -285,14 +275,12 @@ public class DBApp {
 			}
 		}
 		if (writePage.getSize() > 0)
-			table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_write++,
-					writePage);
+			table.writePage(dbHelper.getPagePath(strTableName, start_write++), writePage);
 
 		table.setPageCount(start_write);
 
 		while (start_write < end_write) { // delete extra pages
-			File file = new File(
-					dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_write++);
+			File file = new File(dbHelper.getPagePath(strTableName, start_write++));
 			file.delete();
 		}
 	}

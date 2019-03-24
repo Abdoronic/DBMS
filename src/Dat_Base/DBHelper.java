@@ -16,10 +16,12 @@ public class DBHelper {
 
 	private String DBPath = new File("").getAbsolutePath() + "/";
 	private int MaximumRowsCountInPage;
+	private int BitmapSize;
 
 	public DBHelper() {
 		DBPath = new File("").getAbsolutePath() + "/";
 		MaximumRowsCountInPage = 200;
+		BitmapSize = 150;
 		loadConfigurations();
 	}
 	
@@ -37,6 +39,8 @@ public class DBHelper {
 				int propValue = Integer.parseInt(prop[1]);
 				if (propName.equals("MaximumRowsCountInPage")) {
 					MaximumRowsCountInPage = propValue;
+				} else if(propName.equals("BitmapSize")) {
+					BitmapSize = propValue;
 				}
 			}
 			buffer.close();
@@ -138,6 +142,16 @@ public class DBHelper {
 		return htbColNameType;
 	}
 
+	public boolean matchRecord(Hashtable<String, Object> fromTable, Hashtable<String, Object> attributSet) {
+		for (Entry<String, Object> e : attributSet.entrySet()) {
+			String colName = e.getKey();
+			Object value = e.getValue();
+			if (!fromTable.get(colName).equals(value))
+				return false;
+		}
+		return true;
+	}
+
 	private boolean validDate(int year, int month, int day) {
 		return year > 0 && month >= 0 && month < 12 && day > 0 && day <= 31;
 	}
@@ -169,19 +183,23 @@ public class DBHelper {
 	public String getDBPath() {
 		return DBPath;
 	}
+	
+	/**
+	 * 
+	 * @param tableName
+	 * @param pageNumber
+	 * @return The path the page is at or should be at
+	 */
+	public String getPagePath(String tableName, int pageNumber) {
+		return DBPath + "/data/" + tableName + "/" + tableName + "_" + pageNumber;
+	}
 
 	public int getMaximumRowsCountInPage() {
 		return MaximumRowsCountInPage;
 	}
 
-	public boolean matchRecord(Hashtable<String, Object> fromTable, Hashtable<String, Object> attributSet) {
-		for (Entry<String, Object> e : attributSet.entrySet()) {
-			String colName = e.getKey();
-			Object value = e.getValue();
-			if (!fromTable.get(colName).equals(value))
-				return false;
-		}
-		return true;
+	public int getBitmapSize() {
+		return BitmapSize;
 	}
 	
 }

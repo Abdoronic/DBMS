@@ -13,10 +13,9 @@ public class Page implements Serializable {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public boolean addRecord(Record record , int MAX) throws DBAppException{
+	public boolean addRecord(Record record, int MAX) throws DBAppException {
 		Comparable insertedKey = (Comparable) record.getPrimaryKey();
-		if(page.size() == 0)
-		{
+		if (page.size() == 0) {
 			page.add(0, record);
 			return true;
 		}
@@ -26,16 +25,13 @@ public class Page implements Serializable {
 			if (insertedKey.compareTo(currKey) < 0) {
 				page.add(i, record);
 				return true;
-			}
-			else if(insertedKey.compareTo(currKey) == 0)
-			{
-				throw new DBAppException("The PrimaryKey ( "+currKey+" ) already exists");
+			} else if (insertedKey.compareTo(currKey) == 0) {
+				throw new DBAppException("The PrimaryKey ( " + currKey + " ) already exists");
 			}
 		}
-		if(page.size() < MAX )
-		{
+		if (page.size() < MAX) {
 			page.add(page.size(), record);
-			return true;			
+			return true;
 		}
 		return false;
 	}
@@ -59,12 +55,12 @@ public class Page implements Serializable {
 	public int getSize() {
 		return page.size();
 	}
-	
+
 	@Override
 	public String toString() {
 		String s = "start \n";
-		for(Record r:page)
-			s += r.toString()+"\n";
-		return s+"end";
+		for (Record r : page)
+			s += r.toString() + "\n";
+		return s + "end";
 	}
 }

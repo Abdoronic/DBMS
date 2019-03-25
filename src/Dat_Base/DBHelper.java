@@ -127,6 +127,56 @@ public class DBHelper {
 		buffer.close();
 		return key;
 	}
+	
+	public Boolean isIndexed(String tableName, String colName){
+		try {
+			BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
+			String line, tokens[];
+			boolean isIndexed = false;
+			while (buffer.ready()) {
+				line = buffer.readLine();
+				tokens = line.split(",");
+				if (tokens[0].equals(tableName) && tokens[1].equals(colName)) {
+					isIndexed = tokens[4].equals("True");
+					break;
+				}
+			}
+			buffer.close();
+			return isIndexed;
+		} catch(IOException e) {
+			System.err.println("Error Checking index from metadata");
+			e.printStackTrace(System.err);
+			return false;
+		}
+	}
+	
+	public void setIndexed(String tableName, String colName){
+		try {
+			StringBuilder newMetaData = new StringBuilder();
+			BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
+			String line, tokens[];
+			while (buffer.ready()) {
+				line = buffer.readLine();
+				tokens = line.split(",");
+				if (tokens[0].equals(tableName) && tokens[1].equals(colName)) {
+					line = "";
+					for(int j = 0; j < tokens.length - 1; j++)
+						line += tokens[j] + ',';
+					line += "True";
+				}
+				newMetaData.append(line + '\n');
+			}
+			buffer.close();
+			File metadata = new File(DBPath + "data/metadata.csv");
+			FileWriter fileWriter = new FileWriter(metadata.getAbsolutePath());
+			PrintWriter metadataWriter = new PrintWriter(fileWriter);
+			metadataWriter.print(newMetaData.toString());
+			metadataWriter.close();
+		} catch(IOException e) {
+			System.err.println("Error Changing index from metadata");
+			e.printStackTrace(System.err);
+		}
+	}
 
 	public Hashtable<String, Object> getTableColNameType(String tableName) throws IOException {
 		BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
@@ -192,6 +242,10 @@ public class DBHelper {
 	 */
 	public String getPagePath(String tableName, int pageNumber) {
 		return DBPath + "/data/" + tableName + "/" + tableName + "_" + pageNumber;
+	}
+	
+	public String getIndexPagePath(String tableName, String colName, int pageNumber) {
+		return DBPath + "/data/" + tableName + "_" + colName + "_Index" + "/" + tableName + "_" + colName + "_" + pageNumber;
 	}
 
 	public int getMaximumRowsCountInPage() {

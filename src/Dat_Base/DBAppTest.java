@@ -12,7 +12,8 @@ public class DBAppTest {
 		htblColNameType.put("name", "java.lang.String"); 
 		htblColNameType.put("gpa", "java.lang.Double"); 
 		db.createTable( strTableName, "id", htblColNameType );
-		
+		System.out.println("###############");
+		System.out.println(db.getTables().get(strTableName).getPageCount());
 		Hashtable<String, Object> htblColNameValue = new Hashtable<>( );
 		
 		htblColNameValue.put("id", new Integer( 2343432 )); 
@@ -20,12 +21,14 @@ public class DBAppTest {
 		htblColNameValue.put("gpa", new Double( 0.95 ) ); 
 		db.insertIntoTable( strTableName , htblColNameValue );
 		htblColNameValue.clear( );
+		System.out.println(db.getTables().get(strTableName).getPageCount());
 		
 		htblColNameValue.put("id", new Integer( 2343223 ));
 		htblColNameValue.put("name", new String("Ahmed Noor" ) );
 		htblColNameValue.put("gpa", new Double( 0.95 ) ); 
 		db.insertIntoTable( strTableName , htblColNameValue );
 		htblColNameValue.clear( );
+		System.out.println(db.getTables().get(strTableName).getPageCount());
 		
 		htblColNameValue.put("id", new Integer( 5674567 )); 
 		htblColNameValue.put("name", new String("Dalia Noor" ) ); 
@@ -33,16 +36,24 @@ public class DBAppTest {
 		db.insertIntoTable( strTableName , htblColNameValue );
 		htblColNameValue.clear( ); 
 		
+		System.out.println(db.getTables().get(strTableName).getPageCount());
 		htblColNameValue.put("id", new Integer( 23498 )); 
 		htblColNameValue.put("name", new String("John Noor"));
 		htblColNameValue.put("gpa", new Double( 1.5 ) ); 
 		db.insertIntoTable( strTableName , htblColNameValue );
 		htblColNameValue.clear( ); 
+		System.out.println(db.getTables().get(strTableName).getPageCount());
 		
 		htblColNameValue.put("id", new Integer( 78452 )); 
 		htblColNameValue.put("name", new String("Zaky Noor"));
 		htblColNameValue.put("gpa", new Double( 0.88 ) );
 		db.insertIntoTable( strTableName , htblColNameValue );
+		System.out.println(db.getTables().get(strTableName).getPageCount());
+		System.out.println("###############");
+		
+		db.createBitmapIndex(strTableName, "id");
+		db.createBitmapIndex(strTableName, "gpa");
+		
 	}
 	
 	public static void printPage(DBApp db, String tableName, int pageNumber) {
@@ -51,12 +62,20 @@ public class DBAppTest {
 		System.out.println(p);
 	}
 
+	public static void printIndexPage(DBApp db, String tableName, String colName, int pageNumber) {
+		String path = db.getDbHelper().getIndexPagePath(tableName, colName, pageNumber);
+		IndexPage p = new BitMap(tableName, colName).readPage(path);
+		System.out.println(p);
+	}
+	
 	public static void main(String[] args) throws DBAppException, IOException {
 		DBApp db = new DBApp();
 		
 		testCreation(db);
 		
 		printPage(db, "Student", 0);
+		printIndexPage(db, "Student", "id", 0);
+		printIndexPage(db, "Student", "gpa", 0);
 
 		
 //		System.out.println(db.getTables());

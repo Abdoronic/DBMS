@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Vector;
 import java.util.Map.Entry;
 
@@ -50,6 +52,72 @@ public class DBApp {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	public void createBitmapIndex(String strTableName, String strColName) throws DBAppException {
+		//Check if Input is valid
+		if (!tables.containsKey(strTableName))
+			throw new DBAppException("Table " + strTableName + " Does not exist!");
+		if (dbHelper.isIndexed(strTableName, strTableName))
+			throw new DBAppException("Index on " + strColName + " in" + strTableName + " is already created!");
+		try {
+			Hashtable<String, Object> colNameType = dbHelper.getTableColNameType(strTableName);
+			if (!colNameType.containsKey(strColName))
+				throw new DBAppException("Column " + strColName + " Does not exist in Table " + strTableName);
+		} catch (IOException e) {
+			System.err.println("Error Getting ColName-Type of" + strTableName + " from metadata");
+			e.printStackTrace(System.err);
+		}
+		//Create required Folders
+		BitMap bitMap = new BitMap(strTableName, strColName);
+		//Write to metadata
+		dbHelper.setIndexed(strTableName, strColName);
+		
+		Table table = tables.get(strTableName);
+		
+		//Get Total number of records in Table
+		int tableSize = 0;
+		if(table.getPageCount() > 0) {
+			tableSize = (table.getPageCount() - 1) * dbHelper.getMaximumRowsCountInPage();
+			tableSize += table.readPage(dbHelper.getPagePath(strTableName, table.getPageCount() - 1)).getSize();
+		}
+		
+		//Create a Frequency for all the unique values
+
+		TreeMap<Comparable<Object>, IndexPair> frequency = new TreeMap<>();
+		int recordIndex = 0;
+		for(int i = 0; i < table.getPageCount(); i++) {
+			Page page = table.readPage(dbHelper.getPagePath(strTableName, i));
+			for(Record r : page.getPage()) {
+				Comparable<Object> value = (Comparable<Object>)r.getCell(strColName);
+				if(frequency.containsKey(value)) {
+					frequency.get(value).set(recordIndex);
+				} else {
+					IndexPair pair = new IndexPair(value, tableSize);
+					pair.set(recordIndex);
+					frequency.put(value, pair);
+				}
+				recordIndex++;
+			}
+		}
+		System.out.println("yalla Mada fa");
+		//Write the Index pages
+		int maxPairsPerPage = dbHelper.getBitmapSize();
+		int i = 0, pc = 0;
+		Vector<IndexPair> indexPairBucket = null;
+		for(Map.Entry<Comparable<Object>, IndexPair> entry : frequency.entrySet()) {
+			indexPairBucket = (i == 0)? new Vector<>() : indexPairBucket;
+			indexPairBucket.add(entry.getValue());
+			System.out.println(entry.getValue());
+			if(++i > maxPairsPerPage) {
+				i = 0;
+				bitMap.writePage(dbHelper.getIndexPagePath(strTableName, strColName, pc++), new IndexPage(indexPairBucket));
+			}
+		}
+		if(i > 0)
+			bitMap.writePage(dbHelper.getIndexPagePath(strTableName, strColName, pc), new IndexPage(indexPairBucket));
+		bitMap.setPageCount(pc);
+	}
+
 	public void updateTable(String strTableName, String strKey, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException {
 		Table table = tables.get(strTableName);
@@ -77,13 +145,13 @@ public class DBApp {
 		int end_read = table.getPageCount();
 		int counter = 0;
 		boolean keychanged = false;
-		Hashtable<String, Object>tmp=new Hashtable<String, Object>();
+		Hashtable<String, Object> tmp = new Hashtable<String, Object>();
 		while (start_read < end_read) {
 			Page curPage = table
 					.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_read++);
 			Vector<Record> v = curPage.getPage();
 			for (int i = 0; i < curPage.getSize(); i++) {
-				if ((v.get(i).getPrimaryKey()+"").equals(strKey)) {
+				if ((v.get(i).getPrimaryKey() + "").equals(strKey)) {
 					counter++;
 					Hashtable<String, Object> old = v.get(i).getRecord();
 					for (Entry<String, Object> e : htblColNameValue.entrySet()) {
@@ -106,12 +174,11 @@ public class DBApp {
 						old.remove("TouchDate");
 						deleteFromTable(strTableName, tmp);
 						insertIntoTable(strTableName, old);
+					} else {
+						table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_"
+								+ (start_read - 1), curPage);
 					}
-					else
-					{
-						table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + (start_read-1), curPage);
-					}
-					
+
 				}
 			}
 

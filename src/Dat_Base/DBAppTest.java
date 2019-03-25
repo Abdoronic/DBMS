@@ -4,60 +4,61 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 public class DBAppTest {
-	
+
 	public static void testCreation(DBApp db) throws DBAppException {
 		String strTableName = "Student";
-		Hashtable<String, String> htblColNameType = new Hashtable<>( ); 
-		htblColNameType.put("id", "java.lang.Integer"); 
-		htblColNameType.put("name", "java.lang.String"); 
-		htblColNameType.put("gpa", "java.lang.Double"); 
-		db.createTable( strTableName, "id", htblColNameType );
+		Hashtable<String, String> htblColNameType = new Hashtable<>();
+		htblColNameType.put("id", "java.lang.Integer");
+		htblColNameType.put("name", "java.lang.String");
+		htblColNameType.put("gpa", "java.lang.Double");
+		db.createTable(strTableName, "id", htblColNameType);
 		System.out.println("###############");
 		System.out.println(db.getTables().get(strTableName).getPageCount());
-		Hashtable<String, Object> htblColNameValue = new Hashtable<>( );
-		
-		htblColNameValue.put("id", new Integer( 2343432 )); 
-		htblColNameValue.put("name", new String("Ahmed Noor" ) ); 
-		htblColNameValue.put("gpa", new Double( 0.95 ) ); 
-		db.insertIntoTable( strTableName , htblColNameValue );
-		htblColNameValue.clear( );
+		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
+
+		htblColNameValue.put("id", new Integer(2343432));
+		htblColNameValue.put("name", new String("Ahmed Noor"));
+		htblColNameValue.put("gpa", new Double(0.95));
+		db.insertIntoTable(strTableName, htblColNameValue);
+		htblColNameValue.clear();
 		System.out.println(db.getTables().get(strTableName).getPageCount());
-		
-		htblColNameValue.put("id", new Integer( 2343223 ));
-		htblColNameValue.put("name", new String("Ahmed Noor" ) );
-		htblColNameValue.put("gpa", new Double( 0.95 ) ); 
-		db.insertIntoTable( strTableName , htblColNameValue );
-		htblColNameValue.clear( );
+
+		htblColNameValue.put("id", new Integer(2343223));
+		htblColNameValue.put("name", new String("Ahmed Noor"));
+		htblColNameValue.put("gpa", new Double(0.95));
+		db.insertIntoTable(strTableName, htblColNameValue);
+		htblColNameValue.clear();
 		System.out.println(db.getTables().get(strTableName).getPageCount());
-		
-		htblColNameValue.put("id", new Integer( 5674567 )); 
-		htblColNameValue.put("name", new String("Dalia Noor" ) ); 
-		htblColNameValue.put("gpa", new Double( 1.25 ) ); 
-		db.insertIntoTable( strTableName , htblColNameValue );
-		htblColNameValue.clear( ); 
-		
+
+		htblColNameValue.put("id", new Integer(5674567));
+		htblColNameValue.put("name", new String("Dalia Noor"));
+		htblColNameValue.put("gpa", new Double(1.25));
+		db.insertIntoTable(strTableName, htblColNameValue);
+		htblColNameValue.clear();
+
 		System.out.println(db.getTables().get(strTableName).getPageCount());
-		htblColNameValue.put("id", new Integer( 23498 )); 
+		htblColNameValue.put("id", new Integer(23498));
 		htblColNameValue.put("name", new String("John Noor"));
-		htblColNameValue.put("gpa", new Double( 1.5 ) ); 
-		db.insertIntoTable( strTableName , htblColNameValue );
-		htblColNameValue.clear( ); 
+		htblColNameValue.put("gpa", new Double(1.5));
+		db.insertIntoTable(strTableName, htblColNameValue);
+		htblColNameValue.clear();
 		System.out.println(db.getTables().get(strTableName).getPageCount());
-		
-		htblColNameValue.put("id", new Integer( 78452 )); 
+
+		htblColNameValue.put("id", new Integer(78452));
 		htblColNameValue.put("name", new String("Zaky Noor"));
-		htblColNameValue.put("gpa", new Double( 0.88 ) );
-		db.insertIntoTable( strTableName , htblColNameValue );
+		htblColNameValue.put("gpa", new Double(0.88));
+		db.insertIntoTable(strTableName, htblColNameValue);
 		System.out.println(db.getTables().get(strTableName).getPageCount());
 		System.out.println("###############");
-		
+
 		db.createBitmapIndex(strTableName, "id");
 		db.createBitmapIndex(strTableName, "gpa");
-		
+
 	}
-	
+
 	public static void printPage(DBApp db, String tableName, int pageNumber) {
-		String path = db.getDbHelper().getDBPath() + "/data/" + tableName + "/" + tableName + "_" + String.valueOf(pageNumber);
+		String path = db.getDbHelper().getDBPath() + "/data/" + tableName + "/" + tableName + "_"
+				+ String.valueOf(pageNumber);
 		Page p = new Table(tableName).readPage(path);
 		System.out.println(p);
 	}
@@ -67,17 +68,16 @@ public class DBAppTest {
 		IndexPage p = new BitMap(tableName, colName).readPage(path);
 		System.out.println(p);
 	}
-	
+
 	public static void main(String[] args) throws DBAppException, IOException {
 		DBApp db = new DBApp();
-		
+
 		testCreation(db);
-		
+
 		printPage(db, "Student", 0);
 		printIndexPage(db, "Student", "id", 0);
 		printIndexPage(db, "Student", "gpa", 0);
 
-		
 //		System.out.println(db.getTables());
 //		Hashtable<String, String> table1 = new Hashtable<>();
 //		table1.put("x", "java.lang.Integer");
@@ -92,7 +92,7 @@ public class DBAppTest {
 //		table2.put("z", "java.lang.Double");
 //
 //		db.createTable("table2", "y", table2);
-		
+
 //		String strTableName = "Student";
 //
 //		Hashtable<String, String> htblColNameType = new Hashtable<>();
@@ -142,7 +142,6 @@ public class DBAppTest {
 //			System.out.println(db.getTables().get(strTableName)
 //					.readPage(db.getDbHelper().getDBPath() + "data/" + strTableName + "/" + strTableName + "_" + i++));
 
-		
 	}
 
 }

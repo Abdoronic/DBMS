@@ -54,7 +54,7 @@ public class DBApp {
 
 	@SuppressWarnings("unchecked")
 	public void createBitmapIndex(String strTableName, String strColName) throws DBAppException {
-		//Check if Input is valid
+		// Check if Input is valid
 		if (!tables.containsKey(strTableName))
 			throw new DBAppException("Table " + strTableName + " Does not exist!");
 		if (dbHelper.isIndexed(strTableName, strTableName))
@@ -67,29 +67,29 @@ public class DBApp {
 			System.err.println("Error Getting ColName-Type of" + strTableName + " from metadata");
 			e.printStackTrace(System.err);
 		}
-		//Create required Folders
+		// Create required Folders
 		BitMap bitMap = new BitMap(strTableName, strColName);
-		//Write to metadata
+		// Write to metadata
 		dbHelper.setIndexed(strTableName, strColName);
-		
+
 		Table table = tables.get(strTableName);
-		
-		//Get Total number of records in Table
+
+		// Get Total number of records in Table
 		int tableSize = 0;
-		if(table.getPageCount() > 0) {
+		if (table.getPageCount() > 0) {
 			tableSize = (table.getPageCount() - 1) * dbHelper.getMaximumRowsCountInPage();
 			tableSize += table.readPage(dbHelper.getPagePath(strTableName, table.getPageCount() - 1)).getSize();
 		}
-		
-		//Create a Frequency for all the unique values
+
+		// Create a Frequency for all the unique values
 
 		TreeMap<Comparable<Object>, IndexPair> frequency = new TreeMap<>();
 		int recordIndex = 0;
-		for(int i = 0; i < table.getPageCount(); i++) {
+		for (int i = 0; i < table.getPageCount(); i++) {
 			Page page = table.readPage(dbHelper.getPagePath(strTableName, i));
-			for(Record r : page.getPage()) {
-				Comparable<Object> value = (Comparable<Object>)r.getCell(strColName);
-				if(frequency.containsKey(value)) {
+			for (Record r : page.getPage()) {
+				Comparable<Object> value = (Comparable<Object>) r.getCell(strColName);
+				if (frequency.containsKey(value)) {
 					frequency.get(value).set(recordIndex);
 				} else {
 					IndexPair pair = new IndexPair(value, tableSize);
@@ -100,20 +100,21 @@ public class DBApp {
 			}
 		}
 		System.out.println("yalla Mada fa");
-		//Write the Index pages
+		// Write the Index pages
 		int maxPairsPerPage = dbHelper.getBitmapSize();
 		int i = 0, pc = 0;
 		Vector<IndexPair> indexPairBucket = null;
-		for(Map.Entry<Comparable<Object>, IndexPair> entry : frequency.entrySet()) {
-			indexPairBucket = (i == 0)? new Vector<>() : indexPairBucket;
+		for (Map.Entry<Comparable<Object>, IndexPair> entry : frequency.entrySet()) {
+			indexPairBucket = (i == 0) ? new Vector<>() : indexPairBucket;
 			indexPairBucket.add(entry.getValue());
 			System.out.println(entry.getValue());
-			if(++i > maxPairsPerPage) {
+			if (++i > maxPairsPerPage) {
 				i = 0;
-				bitMap.writePage(dbHelper.getIndexPagePath(strTableName, strColName, pc++), new IndexPage(indexPairBucket));
+				bitMap.writePage(dbHelper.getIndexPagePath(strTableName, strColName, pc++),
+						new IndexPage(indexPairBucket));
 			}
 		}
-		if(i > 0)
+		if (i > 0)
 			bitMap.writePage(dbHelper.getIndexPagePath(strTableName, strColName, pc), new IndexPage(indexPairBucket));
 		bitMap.setPageCount(pc);
 	}

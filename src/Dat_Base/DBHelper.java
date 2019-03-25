@@ -24,7 +24,7 @@ public class DBHelper {
 		BitmapSize = 150;
 		loadConfigurations();
 	}
-	
+
 	public void loadConfigurations() {
 		try {
 			// Loading DB Configuration file
@@ -39,7 +39,7 @@ public class DBHelper {
 				int propValue = Integer.parseInt(prop[1]);
 				if (propName.equals("MaximumRowsCountInPage")) {
 					MaximumRowsCountInPage = propValue;
-				} else if(propName.equals("BitmapSize")) {
+				} else if (propName.equals("BitmapSize")) {
 					BitmapSize = propValue;
 				}
 			}
@@ -50,13 +50,13 @@ public class DBHelper {
 			e.printStackTrace(System.err);
 		}
 	}
-	
+
 	public Hashtable<String, Table> getTables() {
 		Hashtable<String, Table> tables = new Hashtable<>();
 		try {
 			BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
 			String[] tokens;
-			while(buffer.ready()) {
+			while (buffer.ready()) {
 				tokens = buffer.readLine().split(",");
 				tables.put(tokens[0], new Table(tokens[0]));
 			}
@@ -127,8 +127,8 @@ public class DBHelper {
 		buffer.close();
 		return key;
 	}
-	
-	public Boolean isIndexed(String tableName, String colName){
+
+	public Boolean isIndexed(String tableName, String colName) {
 		try {
 			BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
 			String line, tokens[];
@@ -143,14 +143,14 @@ public class DBHelper {
 			}
 			buffer.close();
 			return isIndexed;
-		} catch(IOException e) {
+		} catch (IOException e) {
 			System.err.println("Error Checking index from metadata");
 			e.printStackTrace(System.err);
 			return false;
 		}
 	}
-	
-	public void setIndexed(String tableName, String colName){
+
+	public void setIndexed(String tableName, String colName) {
 		try {
 			StringBuilder newMetaData = new StringBuilder();
 			BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
@@ -160,7 +160,7 @@ public class DBHelper {
 				tokens = line.split(",");
 				if (tokens[0].equals(tableName) && tokens[1].equals(colName)) {
 					line = "";
-					for(int j = 0; j < tokens.length - 1; j++)
+					for (int j = 0; j < tokens.length - 1; j++)
 						line += tokens[j] + ',';
 					line += "True";
 				}
@@ -172,7 +172,7 @@ public class DBHelper {
 			PrintWriter metadataWriter = new PrintWriter(fileWriter);
 			metadataWriter.print(newMetaData.toString());
 			metadataWriter.close();
-		} catch(IOException e) {
+		} catch (IOException e) {
 			System.err.println("Error Changing index from metadata");
 			e.printStackTrace(System.err);
 		}
@@ -233,7 +233,7 @@ public class DBHelper {
 	public String getDBPath() {
 		return DBPath;
 	}
-	
+
 	/**
 	 * 
 	 * @param tableName
@@ -243,9 +243,10 @@ public class DBHelper {
 	public String getPagePath(String tableName, int pageNumber) {
 		return DBPath + "/data/" + tableName + "/" + tableName + "_" + pageNumber;
 	}
-	
+
 	public String getIndexPagePath(String tableName, String colName, int pageNumber) {
-		return DBPath + "/data/" + tableName + "_" + colName + "_Index" + "/" + tableName + "_" + colName + "_" + pageNumber;
+		return DBPath + "/data/" + tableName + "_" + colName + "_Index" + "/" + tableName + "_" + colName + "_"
+				+ pageNumber;
 	}
 
 	public int getMaximumRowsCountInPage() {
@@ -255,5 +256,5 @@ public class DBHelper {
 	public int getBitmapSize() {
 		return BitmapSize;
 	}
-	
+
 }

@@ -30,13 +30,13 @@ public class Table {
 			System.out.printf("DIR %s created\n", tableName);
 		}
 		return theDir.listFiles().length;
-	} 
+	}
 
 	public Page readPage(String path) {
 		try {
 			FileInputStream fstream = new FileInputStream(path);
 			ObjectInputStream ois = new ObjectInputStream(fstream);
-			Page p=(Page) ois.readObject();
+			Page p = (Page) ois.readObject();
 			ois.close();
 			return p;
 		} catch (Exception e) {
@@ -65,6 +65,7 @@ public class Table {
 	public void incPageCount() {
 		this.pageCount++;
 	}
+
 	public void setPageCount(int x) {
 		this.pageCount = x;
 	}

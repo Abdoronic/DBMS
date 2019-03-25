@@ -8,17 +8,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 public class BitMap {
-	
+
 	private String tableName;
 	private String colName;
 	private int pageCount;
-	
+
 	public BitMap(String tableName, String colName) {
 		this.tableName = tableName;
 		this.colName = colName;
 		this.pageCount = createFolderAndCountPages();
 	}
-	
+
 	public int createFolderAndCountPages() {
 		File theDir = new File("./data/" + tableName + "_" + colName + "_Index" + "/");
 		// if the directory does not exist, create it
@@ -32,8 +32,8 @@ public class BitMap {
 			System.out.printf("DIR %s created\n", tableName);
 		}
 		return theDir.listFiles().length;
-	} 
-	
+	}
+
 	public IndexPage readPage(String path) {
 		try {
 			FileInputStream fstream = new FileInputStream(path);
@@ -47,7 +47,7 @@ public class BitMap {
 		}
 		return null;
 	}
-	
+
 	public void writePage(String path, IndexPage page) {
 		try {
 			FileOutputStream fstream = new FileOutputStream(new File(path));
@@ -71,13 +71,13 @@ public class BitMap {
 	public int getPageCount() {
 		return pageCount;
 	}
-	
+
 	public void setPageCount(int pageCount) {
 		this.pageCount = pageCount;
 	}
-	
+
 	public void incPageCount() {
 		this.pageCount++;
 	}
-	
+
 }

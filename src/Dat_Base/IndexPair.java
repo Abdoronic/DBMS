@@ -12,11 +12,11 @@ public class IndexPair implements Comparable<IndexPair>, Serializable {
 		this.value = value;
 		this.bits = bits;
 	}
-	
+
 	public IndexPair(Comparable<Object> value, int size) {
 		this.value = value;
 		StringBuilder res = new StringBuilder();
-		for(int i = 0; i < size; i++)
+		for (int i = 0; i < size; i++)
 			res.append('0');
 		this.bits = res.toString();
 	}
@@ -24,36 +24,36 @@ public class IndexPair implements Comparable<IndexPair>, Serializable {
 	public void set(int index) {
 		bits = bits.substring(0, index) + "1" + bits.substring(index + 1, bits.length());
 	}
-	
+
 	public void reset(int index) {
 		bits = bits.substring(0, index) + "0" + bits.substring(index + 1, bits.length());
 	}
-	
+
 	public void insert(int index, String bit) {
 		bits = bits.substring(0, index) + bit + bits.substring(index, bits.length());
 	}
-	
+
 	public void delete(int index) {
 		bits = bits.substring(0, index) + bits.substring(index + 1, bits.length());
 	}
-	
+
 	public static String or(String a, String b) {
 		StringBuilder res = new StringBuilder();
-		for(int i = 0; i < a.length(); i++)
-			res.append(a.charAt(i) == '1' || b.charAt(i) == '1'? '1' : '0');
+		for (int i = 0; i < a.length(); i++)
+			res.append(a.charAt(i) == '1' || b.charAt(i) == '1' ? '1' : '0');
 		return res.toString();
 	}
-	
+
 	public static String and(String a, String b) {
 		StringBuilder res = new StringBuilder();
-		for(int i = 0; i < a.length(); i++)
-			res.append(a.charAt(i) == '1' && b.charAt(i) == '1'? '1' : '0');
+		for (int i = 0; i < a.length(); i++)
+			res.append(a.charAt(i) == '1' && b.charAt(i) == '1' ? '1' : '0');
 		return res.toString();
 	}
-	
+
 	public static String xor(String a, String b) {
 		StringBuilder res = new StringBuilder();
-		for(int i = 0; i < a.length(); i++)
+		for (int i = 0; i < a.length(); i++)
 			res.append(a.charAt(i) != b.charAt(i) ? '1' : '0');
 		return res.toString();
 	}

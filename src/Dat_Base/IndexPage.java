@@ -21,7 +21,11 @@ public class IndexPage implements Serializable {
 		if (paddBits(insertedIndex, insertedValue))
 			return true; // will need to continue padding zeroes to the rest of pages
 		IndexPair newIndexPair = new IndexPair(insertedValue, tableSize);
+		System.out.println("For Value: " + insertedValue);
+		System.out.println("The index is: " + insertedIndex);
+		System.out.println("For TableSize is: " + tableSize);
 		newIndexPair.set(insertedIndex);
+		System.out.println("The created Index is: " + insertedIndex);
 		if (indexPage.isEmpty())
 			return indexPage.add(newIndexPair);
 		for (int i = 0; i < indexPage.size(); i++) {
@@ -55,6 +59,14 @@ public class IndexPage implements Serializable {
 
 	public Vector<IndexPair> getIndexPage() {
 		return indexPage;
+	}
+	
+	public IndexPair getIndexPair(int index) {
+		return indexPage.get(index);
+	}
+	
+	public int getSize() {
+		return indexPage.size();
 	}
 
 	@Override

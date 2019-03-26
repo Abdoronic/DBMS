@@ -68,21 +68,16 @@ public class DBApp {
 			e.printStackTrace(System.err);
 		}
 		// Create required Folders
-		BitMap bitMap = new BitMap(strTableName, strColName);
+		BitMap bitMap = new BitMap(strTableName, strColName, dbHelper);
 		// Write to metadata
 		dbHelper.setIndexed(strTableName, strColName);
 
 		Table table = tables.get(strTableName);
 
 		// Get Total number of records in Table
-		int tableSize = 0;
-		if (table.getPageCount() > 0) {
-			tableSize = (table.getPageCount() - 1) * dbHelper.getMaximumRowsCountInPage();
-			tableSize += table.readPage(dbHelper.getPagePath(strTableName, table.getPageCount() - 1)).getSize();
-		}
+		int tableSize = dbHelper.calcTableSize(table);
 
 		// Create a Frequency for all the unique values
-
 		TreeMap<Comparable<Object>, IndexPair> frequency = new TreeMap<>();
 		int recordIndex = 0;
 		for (int i = 0; i < table.getPageCount(); i++) {
@@ -99,7 +94,6 @@ public class DBApp {
 				recordIndex++;
 			}
 		}
-		System.out.println("yalla Mada fa");
 		// Write the Index pages
 		int maxPairsPerPage = dbHelper.getBitmapSize();
 		int i = 0, pc = 0;
@@ -148,8 +142,7 @@ public class DBApp {
 		boolean keychanged = false;
 		Hashtable<String, Object> tmp = new Hashtable<String, Object>();
 		while (start_read < end_read) {
-			Page curPage = table
-					.readPage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_" + start_read++);
+			Page curPage = table.readPage(dbHelper.getPagePath(strTableName, start_read++));
 			Vector<Record> v = curPage.getPage();
 			for (int i = 0; i < curPage.getSize(); i++) {
 				if ((v.get(i).getPrimaryKey() + "").equals(strKey)) {
@@ -175,9 +168,8 @@ public class DBApp {
 						old.remove("TouchDate");
 						deleteFromTable(strTableName, tmp);
 						insertIntoTable(strTableName, old);
-					} else {
-						table.writePage(dbHelper.getDBPath() + "/data/" + strTableName + "/" + strTableName + "_"
-								+ (start_read - 1), curPage);
+					} else { 
+						table.writePage(dbHelper.getPagePath(strTableName, start_read - 1), curPage);
 					}
 
 				}
@@ -190,6 +182,7 @@ public class DBApp {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	public boolean insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException {
 		Table table = tables.get(strTableName);
@@ -260,15 +253,22 @@ public class DBApp {
 
 		int start = 0;
 		int end = table.getPageCount();
+		int recordTableIndex = 0, recordPageIndex;
+		int maximumRowsCountInPage = dbHelper.getMaximumRowsCountInPage();
 		boolean added = false;
 		Page curPage = null;
 		// trying to add the record sequentially
 		while (start < end && !added) {
 			curPage = table.readPage(dbHelper.getPagePath(strTableName, start));
-			added |= curPage.addRecord(record, dbHelper.getMaximumRowsCountInPage());
+			recordPageIndex = curPage.addRecord(record, maximumRowsCountInPage);
+			if(recordPageIndex == -1) {
+				recordTableIndex += maximumRowsCountInPage;
+			} else {
+				recordTableIndex += recordPageIndex;
+				added = true;
+			}
 			start++;
 		}
-
 		if (!added) { // we could not insert in any of the original pages, we have to make new page
 			Page newPage = new Page();
 			newPage.addRecord(record, dbHelper.getMaximumRowsCountInPage());
@@ -296,6 +296,12 @@ public class DBApp {
 				table.writePage(dbHelper.getPagePath(strTableName, start), nextPage);
 				size = nextPage.getSize();
 				curPage = nextPage;
+			}
+		}
+		for(Map.Entry<String, Object> e : htblColNameValue.entrySet()) {
+			if(dbHelper.isIndexed(strTableName, e.getKey())) {
+				BitMap colBitMap = new BitMap(strTableName, e.getKey(), dbHelper);
+				colBitMap.insertIntoBitMap((Comparable<Object>)e.getValue(), recordTableIndex);
 			}
 		}
 		return true;
@@ -327,19 +333,26 @@ public class DBApp {
 		int start_read = 0, start_write = 0;
 		int end_read = table.getPageCount(), end_write = table.getPageCount();
 		Page writePage = new Page();
+		int recordIndex = 0, deleted = 0;
 		while (start_read < end_read) {
 			Page curPage = table.readPage(dbHelper.getPagePath(strTableName, start_read++));
-
 			Vector<Record> v = curPage.getPage();
-			for (int i = 0; i < curPage.getSize(); i++) {
+			for (int i = 0; i < curPage.getSize(); i++, recordIndex++) {
 				if (!dbHelper.matchRecord(v.get(i).getRecord(), htblColNameValue)) {
 					writePage.addRecord(v.get(i), dbHelper.getMaximumRowsCountInPage());
 					if (writePage.getSize() == dbHelper.getMaximumRowsCountInPage()) {
 						table.writePage(dbHelper.getPagePath(strTableName, start_write++), writePage);
 						writePage = new Page();
 					}
+				} else {
+					for(String colName : v.get(i).getRecord().keySet()) {
+						if(dbHelper.isIndexed(strTableName, colName)) {
+							BitMap colBitMap = new BitMap(strTableName, colName, dbHelper);
+							colBitMap.deleteFromBitMap(recordIndex - deleted);
+						}
+					}
+					deleted++;
 				}
-
 			}
 		}
 		if (writePage.getSize() > 0)

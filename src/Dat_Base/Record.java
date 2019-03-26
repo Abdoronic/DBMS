@@ -3,7 +3,7 @@ package Dat_Base;
 import java.io.Serializable;
 import java.util.Hashtable;
 
-public class Record implements Serializable {
+public class Record implements Serializable, Comparable<Record> {
 
 	private static final long serialVersionUID = 1L;
 	private String primaryKey;
@@ -33,5 +33,11 @@ public class Record implements Serializable {
 	@Override
 	public String toString() {
 		return record.toString() + " PK= " + primaryKey;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public int compareTo(Record o) {
+		return ((Comparable<Object>)getPrimaryKey()).compareTo((Comparable<Object>)o.getPrimaryKey());
 	}
 }

@@ -57,6 +57,10 @@ public class Table {
 			e.printStackTrace(System.err);
 		}
 	}
+	
+	public String getTableName() {
+		return tableName;
+	}
 
 	public int getPageCount() {
 		return this.pageCount;

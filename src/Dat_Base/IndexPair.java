@@ -30,11 +30,25 @@ public class IndexPair implements Comparable<IndexPair>, Serializable {
 	}
 
 	public void insert(int index, String bit) {
-		bits = bits.substring(0, index) + bit + bits.substring(index, bits.length());
+		System.out.println("Index: " + index + "String: " + bits);
+		if(index == bits.length())
+			bits += bit;
+		else if(index == 0)
+			bits = bit + bits;
+		else
+			bits = bits.substring(0, index) + bit + bits.substring(index, bits.length());
+		System.out.println("After: " + bits);
 	}
 
 	public void delete(int index) {
-		bits = bits.substring(0, index) + bits.substring(index + 1, bits.length());
+		if(index == 0 && index == bits.length() - 1)
+			bits = "";
+		else if(index == bits.length() - 1)
+			bits = bits.substring(0, bits.length() - 1);
+		else if(index == 0)
+			bits = bits.substring(1, bits.length());
+		else
+			bits = bits.substring(0, index) + bits.substring(index + 1, bits.length());
 	}
 
 	public static String or(String a, String b) {

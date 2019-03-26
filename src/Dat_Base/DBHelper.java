@@ -67,6 +67,44 @@ public class DBHelper {
 		}
 		return tables;
 	}
+	
+	public Table getTable(String tableName) {
+		Table table = null;
+		try {
+			BufferedReader buffer = new BufferedReader(new FileReader(DBPath + "data/metadata.csv"));
+			String[] tokens;
+			while (buffer.ready()) {
+				tokens = buffer.readLine().split(",");
+				if(tokens[0].equals(tableName)) {
+					table = new Table(tableName);
+					break;
+				} 
+			}
+			buffer.close();
+		} catch (IOException e) {
+			System.err.println("Cannot Load tables from Metadata");
+			e.printStackTrace();
+		}
+		return table;
+	}
+	
+	public int getTableSize(String tableName) {
+		Table table = getTable(tableName);
+		if(table != null)
+			return calcTableSize(table);
+		return -1;
+	}
+	
+	public int calcTableSize(Table table) {
+		if(table.getPageCount() > 0) {
+			int tableSize = (table.getPageCount() - 1) * getMaximumRowsCountInPage();
+			tableSize += table.readPage(getPagePath(table.getTableName(), table.getPageCount() - 1)).getSize();
+			return tableSize;
+		}
+		return 0;
+	}
+	
+	
 
 	public void addToMetaData(String tableName, String primaryKey, Hashtable<String, String> colNameType)
 			throws IOException {

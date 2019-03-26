@@ -13,29 +13,41 @@ public class DBAppTest {
 		htblColNameType.put("gpa", "java.lang.Double");
 		db.createTable(strTableName, "id", htblColNameType);
 		System.out.println("###############");
-		System.out.println(db.getTables().get(strTableName).getPageCount());
 		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
+		
+		db.createBitmapIndex(strTableName, "id");
+		db.createBitmapIndex(strTableName, "gpa");
 
 		htblColNameValue.put("id", new Integer(2343432));
 		htblColNameValue.put("name", new String("Ahmed Noor"));
 		htblColNameValue.put("gpa", new Double(0.95));
 		db.insertIntoTable(strTableName, htblColNameValue);
 		htblColNameValue.clear();
-		System.out.println(db.getTables().get(strTableName).getPageCount());
+		
+		System.out.println("-----------------");
+		printIndexPage(db, "Student", "id", 0);
+		System.out.println("-----------------");
 
 		htblColNameValue.put("id", new Integer(2343223));
 		htblColNameValue.put("name", new String("Ahmed Noor"));
 		htblColNameValue.put("gpa", new Double(0.95));
 		db.insertIntoTable(strTableName, htblColNameValue);
 		htblColNameValue.clear();
-		System.out.println(db.getTables().get(strTableName).getPageCount());
 
+//		System.out.println("-----------------");
+//		printIndexPage(db, "Student", "id", 0);
+//		System.out.println("-----------------");
+		
 		htblColNameValue.put("id", new Integer(5674567));
 		htblColNameValue.put("name", new String("Dalia Noor"));
 		htblColNameValue.put("gpa", new Double(1.25));
 		db.insertIntoTable(strTableName, htblColNameValue);
 		htblColNameValue.clear();
 
+//		System.out.println("-----------------");
+//		printIndexPage(db, "Student", "id", 0);
+//		System.out.println("-----------------");
+		
 		System.out.println(db.getTables().get(strTableName).getPageCount());
 		htblColNameValue.put("id", new Integer(23498));
 		htblColNameValue.put("name", new String("John Noor"));
@@ -50,9 +62,13 @@ public class DBAppTest {
 		db.insertIntoTable(strTableName, htblColNameValue);
 		System.out.println(db.getTables().get(strTableName).getPageCount());
 		System.out.println("###############");
+		
+		htblColNameValue.clear();
+		htblColNameValue.put("name", "Ahmed Noor");
+		db.deleteFromTable(strTableName, htblColNameValue);
 
-		db.createBitmapIndex(strTableName, "id");
-		db.createBitmapIndex(strTableName, "gpa");
+//		db.createBitmapIndex(strTableName, "id");
+//		db.createBitmapIndex(strTableName, "gpa");
 
 	}
 
@@ -65,7 +81,7 @@ public class DBAppTest {
 
 	public static void printIndexPage(DBApp db, String tableName, String colName, int pageNumber) {
 		String path = db.getDbHelper().getIndexPagePath(tableName, colName, pageNumber);
-		IndexPage p = new BitMap(tableName, colName).readPage(path);
+		IndexPage p = new BitMap(tableName, colName, db.getDbHelper()).readPage(path);
 		System.out.println(p);
 	}
 

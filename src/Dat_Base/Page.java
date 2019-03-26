@@ -13,27 +13,27 @@ public class Page implements Serializable {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public boolean addRecord(Record record, int MAX) throws DBAppException {
+	public int addRecord(Record record, int maximumRowsCountInPage) throws DBAppException {
 		Comparable insertedKey = (Comparable) record.getPrimaryKey();
 		if (page.size() == 0) {
 			page.add(0, record);
-			return true;
+			return 0;
 		}
 		for (int i = 0; i < page.size(); i++) {
 			Record currRecord = page.get(i);
 			Comparable currKey = (Comparable) currRecord.getPrimaryKey();
 			if (insertedKey.compareTo(currKey) < 0) {
 				page.add(i, record);
-				return true;
+				return i;
 			} else if (insertedKey.compareTo(currKey) == 0) {
 				throw new DBAppException("The PrimaryKey ( " + currKey + " ) already exists");
 			}
 		}
-		if (page.size() < MAX) {
+		if (page.size() < maximumRowsCountInPage) {
 			page.add(page.size(), record);
-			return true;
+			return page.size() - 1;
 		}
-		return false;
+		return -1;
 	}
 
 	public Vector<Record> getRecords(String colName, Object value) {
@@ -50,6 +50,10 @@ public class Page implements Serializable {
 
 	public Vector<Record> getPage() {
 		return page;
+	}
+	
+	public Record getRecord(int index) {
+		return page.get(index);
 	}
 
 	public int getSize() {

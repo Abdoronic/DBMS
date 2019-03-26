@@ -7,6 +7,130 @@ import java.util.Vector;
 
 public class UnitTest {
 
+	static String[]names= {"Yahia","Ouda","Ronic","Manta","Merna","Youstina","Joe","Ziad","Moe"};
+	public static void testUpdate(DBApp db) throws DBAppException{
+		System.out.println("----------- Testing Update -----------");
+		String strTableName = "Student";
+		double gpaold = (double)((int)(Math.random()*10));
+		double gpanew = (double)((int)(Math.random()*10));
+		System.out.println("We will update the GPA from: "+gpaold+" to GPA: "+ gpanew);
+		System.out.println("----------- End Of Testing Updates -----------");
+	}
+	public static void testBitMap(DBApp db) throws DBAppException{
+		System.out.println("----------- Testing BitMap -----------");
+		String strTableName = "Student";
+		
+		db.createBitmapIndex(strTableName, "gpa");
+		System.out.println("BitMap Index Created on Column GPA");
+		double gpa = (double)((int)(Math.random()*10));
+		System.out.println("Searching for GPA: "+gpa);
+		ArrayList<Integer>rows = getRows(db, strTableName, "gpa", new Double(gpa));
+		System.out.println("They appear in rows: \n"+rows);
+		System.out.println("\n     ------ BitMap Table of GPA ------     ");
+		printIndexTable(db, "Student", "gpa");
+		System.out.println("     ------ End Of Table ------     \n");
+		
+		db.createBitmapIndex(strTableName, "name");
+		System.out.println("BitMap Index Created on Column Name");
+		int name = (int)(Math.random()*9);
+		System.out.println("Searching for Name: "+names[name]);
+		rows = getRows(db, strTableName, "name", new String(names[name]));
+		System.out.println("They appear in rows: \n"+rows);
+		System.out.println("\n     ------ BitMap Table of Name ------     ");
+		printIndexTable(db, "Student", "name");
+		System.out.println("     ------ End Of Table ------     \n");
+		System.out.println("----------- End Of Testing BitMap -----------");
+	}
+	public static void testInsertion(DBApp db) throws DBAppException{
+		System.out.println("----------- Testing Insertions -----------");
+		String strTableName = "Student";
+		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
+		
+		System.out.println("Inserting From Top:");
+		for(int i=1;i<=5;i++)
+		{
+			int name = (int)(Math.random()*9);
+			double gpa = (double)((int)(Math.random()*10));
+			htblColNameValue.put("id", new Integer(i));
+			htblColNameValue.put("name", new String(names[name]));
+			htblColNameValue.put("gpa", new Double(gpa));
+			db.insertIntoTable(strTableName, htblColNameValue);
+			htblColNameValue.clear();
+		}
+		System.out.println("Done inserting 5 records from id 1 to 5");
+		System.out.println("Number of pages: "+db.getTables().get(strTableName).getPageCount());
+		System.out.println("     ------ Table ------     ");
+		printTable(db, "Student");
+		System.out.println("     ------ End Of Table ------     ");
+		System.out.println("\nInserting From Bottom:");
+		for(int i=15;i>10;i--)
+		{
+			int name = (int)(Math.random()*9);
+			double gpa = (double)((int)(Math.random()*10));
+			htblColNameValue.put("id", new Integer(i));
+			htblColNameValue.put("name", new String(names[name]));
+			htblColNameValue.put("gpa", new Double(gpa));
+			db.insertIntoTable(strTableName, htblColNameValue);
+			htblColNameValue.clear();
+		}
+		System.out.println("Done inserting 5 records from id 15 to 11");
+		System.out.println("Number of pages: "+db.getTables().get(strTableName).getPageCount());
+		System.out.println("     ------ Table ------     \n");
+		printTable(db, "Student");
+		System.out.println("\n     ------ End Of Table ------     ");
+		System.out.println("\nInserting Inside:");
+		for(int i=10;i>5;i--)
+		{
+			int name = (int)(Math.random()*9);
+			double gpa = (double)((int)(Math.random()*10));
+			htblColNameValue.put("id", new Integer(i));
+			htblColNameValue.put("name", new String(names[name]));
+			htblColNameValue.put("gpa", new Double(gpa));
+			db.insertIntoTable(strTableName, htblColNameValue);
+			htblColNameValue.clear();
+		}
+		System.out.println("Done inserting 5 records from id 10 to 6");
+		System.out.println("Number of pages: "+db.getTables().get(strTableName).getPageCount());
+		System.out.println("     ------ Table ------     \n");
+		printTable(db, "Student");
+		System.out.println("\n     ------ End Of Table ------     ");
+		String seq="";
+		for(int i=0;i<20;i++)
+		{
+			int name = (int)(Math.random()*9);
+			double gpa = (double)((int)(Math.random()*10));
+			int x = (int)(Math.random()*40)+16;
+			seq += x+" ";
+			htblColNameValue.put("id", new Integer(x));
+			htblColNameValue.put("name", new String(names[name]));
+			htblColNameValue.put("gpa", new Double(gpa));
+			try {
+			db.insertIntoTable(strTableName, htblColNameValue);
+			}
+			catch(Exception e){
+				i--;
+			}
+			htblColNameValue.clear();
+		}
+		System.out.println("Done inserting 20 Random records seq = "+seq);
+		System.out.println("Number of pages: "+db.getTables().get(strTableName).getPageCount());
+		System.out.println("     ------ Table ------     \n");
+		printTable(db, "Student");
+		System.out.println("\n     ------ End Of Table ------     ");
+		System.out.println("----------- End Of Insertions -----------\n");
+
+	}
+	public static void printIndexTable(DBApp db, String tableName, String colName)
+	{
+		BitMap bm = new BitMap(tableName, colName, db.getDbHelper());
+		for(int i=0;i < bm.getPageCount();i++)
+			printIndexPage(db, tableName, colName, i);
+	}
+	public static void printTable(DBApp db, String tableName)
+	{
+		for(int i=0;i<db.getTables().get(tableName).getPageCount();i++)
+			printPage(db, tableName, i);
+	}
 	public static void testCreation(DBApp db) throws DBAppException {
 		String strTableName = "Student";
 		Hashtable<String, String> htblColNameType = new Hashtable<>();
@@ -14,50 +138,10 @@ public class UnitTest {
 		htblColNameType.put("name", "java.lang.String");
 		htblColNameType.put("gpa", "java.lang.Double");
 		db.createTable(strTableName, "id", htblColNameType);
-		System.out.println("###############");
-		System.out.println(db.getTables().get(strTableName).getPageCount());
-		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
-
-		for(int i=0;i<50;i++)
-		{
-		htblColNameValue.put("id", new Integer(2343432+i));
-		htblColNameValue.put("name", new String("Ahmed Noor"));
-		htblColNameValue.put("gpa", new Double(0.5));
-		db.insertIntoTable(strTableName, htblColNameValue);
-		htblColNameValue.clear();
-		}
-		System.out.println(db.getTables().get(strTableName).getPageCount());
-
-		htblColNameValue.put("id", new Integer(2343));
-		htblColNameValue.put("name", new String("Ahmed Noor"));
-		htblColNameValue.put("gpa", new Double(0.6));
-		db.insertIntoTable(strTableName, htblColNameValue);
-		htblColNameValue.clear();
-		System.out.println(db.getTables().get(strTableName).getPageCount());
-
-		htblColNameValue.put("id", new Integer(5674567));
-		htblColNameValue.put("name", new String("Dalia Noor"));
-		htblColNameValue.put("gpa", new Double(0.5));
-		db.insertIntoTable(strTableName, htblColNameValue);
-		htblColNameValue.clear();
-
-		System.out.println(db.getTables().get(strTableName).getPageCount());
-		htblColNameValue.put("id", new Integer(23498));
-		htblColNameValue.put("name", new String("John Noor"));
-		htblColNameValue.put("gpa", new Double(0.5));
-		db.insertIntoTable(strTableName, htblColNameValue);
-		htblColNameValue.clear();
-		System.out.println(db.getTables().get(strTableName).getPageCount());
-
-		htblColNameValue.put("id", new Integer(78452));
-		htblColNameValue.put("name", new String("Zaky Noor"));
-		htblColNameValue.put("gpa", new Double(0.5));
-		db.insertIntoTable(strTableName, htblColNameValue);
-		System.out.println(db.getTables().get(strTableName).getPageCount());
-		System.out.println("###############");
-
-		db.createBitmapIndex(strTableName, "id");
-		db.createBitmapIndex(strTableName, "gpa");
+		System.out.println("----------- Table Created Successfully!-----------");
+		System.out.println("Number of pages: "+db.getTables().get(strTableName).getPageCount());
+		System.out.println("Maximum record per pages: "+db.getDbHelper().getMaximumRowsCountInPage());
+		System.out.println("--------------------------------------------------");
 		
 
 	}
@@ -141,12 +225,12 @@ public class UnitTest {
 
 	public static void printIndexPage(DBApp db, String tableName, String colName, int pageNumber) {
 		String path = db.getDbHelper().getIndexPagePath(tableName, colName, pageNumber);
-		IndexPage p = new BitMap(tableName, colName).readPage(path);
+		IndexPage p = new BitMap(tableName, colName, db.getDbHelper()).readPage(path);
 		System.out.println(p);
 	}
 	public static IndexPage getIndexPage(DBApp db, String tableName, String colName, int pageNumber) {
 		String path = db.getDbHelper().getIndexPagePath(tableName, colName, pageNumber);
-		IndexPage p = new BitMap(tableName, colName).readPage(path);
+		IndexPage p = new BitMap(tableName, colName, db.getDbHelper()).readPage(path);
 		return p;
 	}
 
@@ -154,18 +238,19 @@ public class UnitTest {
 		DBApp db = new DBApp();
 
 		testCreation(db);
-
-		printPage(db, "Student", 0);
-		printIndexPage(db, "Student", "id", 0);
-		printIndexPage(db, "Student", "gpa", 0);
+		testInsertion(db);
+		testBitMap(db);
+//		printPage(db, "Student", 0);
+//		printIndexPage(db, "Student", "id", 0);
+//		printIndexPage(db, "Student", "gpa", 0);
 		
-		BitMap id = new BitMap("Student", "id");
-		BitMap gpa = new BitMap("Student", "gpa");
-		IndexPage p = getIndexPage(db, "Student", "id", 0);
+//		BitMap id = new BitMap("Student", "id",db.getDbHelper());
+//		BitMap gpa = new BitMap("Student", "gpa", db.getDbHelper());
+//		IndexPage p = getIndexPage(db, "Student", "id", 0);
 		
-		ArrayList<Integer> v05=getRows(db, "Student", "gpa", new Double(0.5));
-		boolean f = isInThisBitMap(db, "Student", "gpa", gpa, new Double(0.5), v05);
-		System.out.println(f);
+//		ArrayList<Integer> v05=getRows(db, "Student", "gpa", new Double(0.5));
+//		boolean f = isInThisBitMap(db, "Student", "gpa", gpa, new Double(0.5), v05);
+//		System.out.println(f);
 	}
 
 }

@@ -103,8 +103,6 @@ public class DBHelper {
 		}
 		return 0;
 	}
-	
-	
 
 	public void addToMetaData(String tableName, String primaryKey, Hashtable<String, String> colNameType)
 			throws IOException {

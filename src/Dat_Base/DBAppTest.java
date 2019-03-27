@@ -2,6 +2,7 @@ package Dat_Base;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 public class DBAppTest {
 
@@ -99,6 +100,30 @@ public class DBAppTest {
 		printPage(db, "Student", 0);
 		printIndexPage(db, "Student", "id", 0);
 		printIndexPage(db, "Student", "gpa", 0);
+		
+		SQLTerm[] sqlTerms;
+		sqlTerms = new SQLTerm[3];
+		
+		sqlTerms[0] = new SQLTerm("Student", "name", "=", "Ahmed Noor");
+		sqlTerms[1] = new SQLTerm("Student", "gpa", "=", new Double( 0.95 ));
+		sqlTerms[2] = new SQLTerm("Student", "gpa", "=", new Double( 0.69 ));
+		
+		String[] operators = new String[2];
+		operators[0] = "AND"; 
+		operators[1] = "OR"; 
+		
+//		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
+//		htblColNameValue.put("id", new Integer(888));
+//		htblColNameValue.put("name", new String("John Noor"));
+//		htblColNameValue.put("gpa", new Double(1.2));
+//		
+//		Record record = new Record("id", htblColNameValue);
+//		htblColNameValue.clear();
+//		QueryManager queryManager = new QueryManager();
+		
+		Iterator<Record> it = db.selectFromTable(sqlTerms, operators);
+		while(it.hasNext())
+			System.out.println(it.next());
 
 //		System.out.println(db.getTables());
 //		Hashtable<String, String> table1 = new Hashtable<>();

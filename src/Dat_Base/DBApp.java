@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
@@ -141,7 +142,7 @@ public class DBApp {
 		int end_read = table.getPageCount();
 		int counter = 0, insertedIndex = 0;
 		boolean keychanged = false, newIdBigger = false;
-		
+
 		Hashtable<String, Object> tmp = new Hashtable<String, Object>();
 		while (start_read < end_read) {
 			Page curPage = table.readPage(dbHelper.getPagePath(strTableName, start_read++));
@@ -157,29 +158,30 @@ public class DBApp {
 						if (colName.equals(v.get(i).getPrimaryKeyCN())) {
 							if (!strKey.equals(value)) {
 								keychanged = true;
-								newIdBigger = ((Comparable<Object>)value).compareTo((Comparable<Object>)htblColNameValue.get(colName)) <= 0; 
+								newIdBigger = ((Comparable<Object>) value)
+										.compareTo((Comparable<Object>) htblColNameValue.get(colName)) <= 0;
 								tmp.put(v.get(i).getPrimaryKeyCN(), old.get(v.get(i).getPrimaryKeyCN()));
 							}
 						}
 						if (old.containsKey(colName)) {
-							if(dbHelper.isIndexed(strTableName, colName)) {
+							if (dbHelper.isIndexed(strTableName, colName)) {
 								BitMap colBitMap = new BitMap(strTableName, colName, dbHelper);
-								colBitMap.updateBitMap((Comparable<Object>)old.get(colName), 
-										(Comparable<Object>)htblColNameValue.get(colName), insertedIndex);
+								colBitMap.updateBitMap((Comparable<Object>) old.get(colName),
+										(Comparable<Object>) htblColNameValue.get(colName), insertedIndex);
 							}
 							old.put(colName, htblColNameValue.get(colName));
 						}
 
 						old.put("TouchDate", dbHelper.currentDate());
-					} 
+					}
 					if (keychanged) {
 						keychanged = false;
 						old.remove("TouchDate");
 						deleteFromTable(strTableName, tmp);
 						insertIntoTable(strTableName, old);
-						if(newIdBigger)
+						if (newIdBigger)
 							--insertedIndex;
-					} else { 
+					} else {
 						table.writePage(dbHelper.getPagePath(strTableName, start_read - 1), curPage);
 					}
 
@@ -272,7 +274,7 @@ public class DBApp {
 		while (start < end && !added) {
 			curPage = table.readPage(dbHelper.getPagePath(strTableName, start));
 			recordPageIndex = curPage.addRecord(record, maximumRowsCountInPage);
-			if(recordPageIndex == -1) {
+			if (recordPageIndex == -1) {
 				recordTableIndex += maximumRowsCountInPage;
 			} else {
 				recordTableIndex += recordPageIndex;
@@ -309,10 +311,10 @@ public class DBApp {
 				curPage = nextPage;
 			}
 		}
-		for(Map.Entry<String, Object> e : htblColNameValue.entrySet()) {
-			if(dbHelper.isIndexed(strTableName, e.getKey())) {
+		for (Map.Entry<String, Object> e : htblColNameValue.entrySet()) {
+			if (dbHelper.isIndexed(strTableName, e.getKey())) {
 				BitMap colBitMap = new BitMap(strTableName, e.getKey(), dbHelper);
-				colBitMap.insertIntoBitMap((Comparable<Object>)e.getValue(), recordTableIndex, true);
+				colBitMap.insertIntoBitMap((Comparable<Object>) e.getValue(), recordTableIndex, true);
 			}
 		}
 		return true;
@@ -356,8 +358,8 @@ public class DBApp {
 						writePage = new Page();
 					}
 				} else {
-					for(String colName : v.get(i).getRecord().keySet()) {
-						if(dbHelper.isIndexed(strTableName, colName)) {
+					for (String colName : v.get(i).getRecord().keySet()) {
+						if (dbHelper.isIndexed(strTableName, colName)) {
 							BitMap colBitMap = new BitMap(strTableName, colName, dbHelper);
 							colBitMap.deleteFromBitMap(recordIndex - deleted);
 						}
@@ -375,6 +377,38 @@ public class DBApp {
 			File file = new File(dbHelper.getPagePath(strTableName, start_write++));
 			file.delete();
 		}
+	}
+
+	public Iterator<Record> selectFromTable(SQLTerm[] arrSQLTerms, String[] strarrOperators) throws DBAppException {
+		if (arrSQLTerms.length == 0)
+			throw new DBAppException("Invalid Where Clause");
+		String tableName = arrSQLTerms[0].getTableName();
+		Hashtable<String, Object> htbColNameValue = null;
+		try {
+			htbColNameValue = dbHelper.getTableColNameType(tableName);
+		} catch (IOException e) {
+			System.err.println("Error Reading From Metadata");
+			e.printStackTrace();
+			return null;
+		}
+		for (int i = 0; i < arrSQLTerms.length; i++) {
+			if (!arrSQLTerms[i].getTableName().equals(tableName))
+				throw new DBAppException("Select must be from the same Table");
+			if (!htbColNameValue.containsKey(arrSQLTerms[i].getColumnName()))
+				throw new DBAppException(
+						"Column: " + arrSQLTerms[i].getColumnName() + " does not exist in Table: " + tableName);
+		}
+		Vector<Record> result = new Vector<>();
+		Table table = tables.get(tableName);
+		QueryManager queryManager = new QueryManager();
+		for(int i = 0; i < table.getPageCount(); i++) {
+			Page currPage = table.readPage(dbHelper.getPagePath(tableName, i));
+			for(int j = 0; j < currPage.getSize(); j++) {
+				if(queryManager.verfiyWhereClause(arrSQLTerms, strarrOperators, currPage.getRecord(j)))
+					result.add(currPage.getRecord(j));
+			}
+		}
+		return result.iterator();
 	}
 
 	public DBHelper getDbHelper() {

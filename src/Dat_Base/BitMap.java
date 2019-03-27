@@ -96,7 +96,7 @@ public class BitMap {
 	 * @return returns true if the record got inserted in the Bitmap successfully
 	 */
 	
-	public boolean insertIntoBitMap(Comparable<Object> insertedValue, int insertedIndex) {
+	public boolean insertIntoBitMap(Comparable<Object> insertedValue, int insertedIndex, boolean newRecordAdded) {
 		int tableSize = dbHelper.getTableSize(tableName);
 		int MaxIndexPairsPerPage = dbHelper.getBitmapSize();
 		int start = 0;
@@ -104,13 +104,13 @@ public class BitMap {
 		IndexPage currPage, nextPage;
 		while(start < indexPageCount && !added) {
 			currPage = readPage(dbHelper.getIndexPagePath(tableName, colName, start));
-			added |= currPage.addValueToIndex(insertedValue, insertedIndex, tableSize, MaxIndexPairsPerPage);
+			added |= currPage.addValueToIndex(insertedValue, insertedIndex, tableSize, MaxIndexPairsPerPage, newRecordAdded);
 			writePage(dbHelper.getIndexPagePath(tableName, colName, start), currPage);
 			++start;
 		}
 		for(int i = start; i < indexPageCount && added; i++) {
 			currPage = readPage(dbHelper.getIndexPagePath(tableName, colName, i));
-			currPage.paddBits(insertedIndex, insertedValue);
+			currPage.paddBits(insertedIndex, insertedValue, newRecordAdded);
 		}
 		nextPage = null;
 		if(start < indexPageCount)
@@ -155,16 +155,21 @@ public class BitMap {
 	}
 	
 	public void updateBitMap(Comparable<Object> oldValue, Comparable<Object> insertedValue, int insertedIndex) {
+		boolean insertedValueExist = false;
 		for(int i = 0; i < indexPageCount; i++) {
 			IndexPage currPage = readPage(dbHelper.getIndexPagePath(tableName, colName, i));
 			for(int j = 0; j < currPage.getSize(); j++) {
 				if(currPage.getIndexPair(j).getValue().compareTo(oldValue) == 0)
 					currPage.getIndexPair(j).reset(insertedIndex);
-				if(currPage.getIndexPair(j).getValue().compareTo(insertedValue) == 0)
+				if(currPage.getIndexPair(j).getValue().compareTo(insertedValue) == 0) {
 					currPage.getIndexPair(j).set(insertedIndex);
+					insertedValueExist = true;
+				}
 			}
 			writePage(dbHelper.getIndexPagePath(tableName, colName, i), currPage);
 		}
+		if(!insertedValueExist)
+			insertIntoBitMap(insertedValue, insertedIndex, false);
 	}
 
 	public String getTableName() {

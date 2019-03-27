@@ -63,10 +63,16 @@ public class DBAppTest {
 		System.out.println(db.getTables().get(strTableName).getPageCount());
 		System.out.println("###############");
 		
+//		htblColNameValue.clear();
+//		htblColNameValue.put("name", "Zaky Noor");
+//		
+//		db.deleteFromTable(strTableName, htblColNameValue);
+		
 		htblColNameValue.clear();
-		htblColNameValue.put("name", "Ahmed Noor");
-		db.deleteFromTable(strTableName, htblColNameValue);
-
+		htblColNameValue.put("gpa", 0.69);
+		
+		db.updateTable(strTableName, "78452", htblColNameValue);
+		
 //		db.createBitmapIndex(strTableName, "id");
 //		db.createBitmapIndex(strTableName, "gpa");
 

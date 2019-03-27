@@ -17,15 +17,11 @@ public class IndexPage implements Serializable {
 	}
 
 	public boolean addValueToIndex(Comparable<Object> insertedValue, int insertedIndex, int tableSize,
-			int maxPairsPerPage) {
-		if (paddBits(insertedIndex, insertedValue))
+			int maxPairsPerPage, boolean newRecordAdded) {
+		if (paddBits(insertedIndex, insertedValue, newRecordAdded))
 			return true; // will need to continue padding zeroes to the rest of pages
 		IndexPair newIndexPair = new IndexPair(insertedValue, tableSize);
-		System.out.println("For Value: " + insertedValue);
-		System.out.println("The index is: " + insertedIndex);
-		System.out.println("For TableSize is: " + tableSize);
 		newIndexPair.set(insertedIndex);
-		System.out.println("The created Index is: " + insertedIndex);
 		if (indexPage.isEmpty())
 			return indexPage.add(newIndexPair);
 		for (int i = 0; i < indexPage.size(); i++) {
@@ -39,14 +35,18 @@ public class IndexPage implements Serializable {
 		return false;
 	}
 
-	public boolean paddBits(int index, Comparable<Object> insertedValue) {
+	public boolean paddBits(int index, Comparable<Object> insertedValue, boolean newRecordAdded) {
 		boolean exist = false;
 		for (int i = 0; i < indexPage.size(); i++) {
 			if (indexPage.get(i).getValue().equals(insertedValue)) {
-				indexPage.get(i).insert(index, "1");
+				if(newRecordAdded)
+					indexPage.get(i).insert(index, "1");
+				else
+					indexPage.get(i).set(index);
 				exist = true;
 			} else {
-				indexPage.get(i).insert(index, "0");
+				if(newRecordAdded)
+					indexPage.get(i).insert(index, "0");
 			}
 		}
 		return exist;

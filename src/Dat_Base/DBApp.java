@@ -113,6 +113,7 @@ public class DBApp {
 		bitMap.setPageCount(pc);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void updateTable(String strTableName, String strKey, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException {
 		Table table = tables.get(strTableName);
@@ -138,13 +139,15 @@ public class DBApp {
 		// ------------------------------------------------------valid data
 		int start_read = 0;
 		int end_read = table.getPageCount();
-		int counter = 0;
-		boolean keychanged = false;
+		int counter = 0, insertedIndex = 0;
+		boolean keychanged = false, newIdBigger = false;
+		
 		Hashtable<String, Object> tmp = new Hashtable<String, Object>();
 		while (start_read < end_read) {
 			Page curPage = table.readPage(dbHelper.getPagePath(strTableName, start_read++));
 			Vector<Record> v = curPage.getPage();
-			for (int i = 0; i < curPage.getSize(); i++) {
+			for (int i = 0; i < curPage.getSize(); i++, insertedIndex++) {
+				newIdBigger = false;
 				if ((v.get(i).getPrimaryKey() + "").equals(strKey)) {
 					counter++;
 					Hashtable<String, Object> old = v.get(i).getRecord();
@@ -154,20 +157,28 @@ public class DBApp {
 						if (colName.equals(v.get(i).getPrimaryKeyCN())) {
 							if (!strKey.equals(value)) {
 								keychanged = true;
+								newIdBigger = ((Comparable<Object>)value).compareTo((Comparable<Object>)htblColNameValue.get(colName)) <= 0; 
 								tmp.put(v.get(i).getPrimaryKeyCN(), old.get(v.get(i).getPrimaryKeyCN()));
 							}
 						}
 						if (old.containsKey(colName)) {
+							if(dbHelper.isIndexed(strTableName, colName)) {
+								BitMap colBitMap = new BitMap(strTableName, colName, dbHelper);
+								colBitMap.updateBitMap((Comparable<Object>)old.get(colName), 
+										(Comparable<Object>)htblColNameValue.get(colName), insertedIndex);
+							}
 							old.put(colName, htblColNameValue.get(colName));
 						}
 
 						old.put("TouchDate", dbHelper.currentDate());
-					}
+					} 
 					if (keychanged) {
 						keychanged = false;
 						old.remove("TouchDate");
 						deleteFromTable(strTableName, tmp);
 						insertIntoTable(strTableName, old);
+						if(newIdBigger)
+							--insertedIndex;
 					} else { 
 						table.writePage(dbHelper.getPagePath(strTableName, start_read - 1), curPage);
 					}
@@ -301,7 +312,7 @@ public class DBApp {
 		for(Map.Entry<String, Object> e : htblColNameValue.entrySet()) {
 			if(dbHelper.isIndexed(strTableName, e.getKey())) {
 				BitMap colBitMap = new BitMap(strTableName, e.getKey(), dbHelper);
-				colBitMap.insertIntoBitMap((Comparable<Object>)e.getValue(), recordTableIndex);
+				colBitMap.insertIntoBitMap((Comparable<Object>)e.getValue(), recordTableIndex, true);
 			}
 		}
 		return true;

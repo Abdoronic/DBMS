@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Stack;
 import java.util.Vector;
 
 public class BitMap {
@@ -61,6 +62,7 @@ public class BitMap {
 			ObjectInputStream ois = new ObjectInputStream(fstream);
 			IndexPage p = (IndexPage) ois.readObject();
 			ois.close();
+			p.decode();
 			return p;
 		} catch (Exception e) {
 			System.err.println("Error Reading from Page");
@@ -79,11 +81,77 @@ public class BitMap {
 		try {
 			FileOutputStream fstream = new FileOutputStream(new File(path));
 			ObjectOutputStream oos = new ObjectOutputStream(fstream);
+			page.encode();
 			oos.writeObject(page);
 			oos.close();
 		} catch (IOException e) {
 			System.err.println("Error Writing to file");
 			e.printStackTrace(System.err);
+		}
+	}
+	
+	public void pushUp(int start, int maxRowsPerPage) {
+		int end = start + 1;
+		IndexPage startPage = readPage(dbHelper.getIndexPagePath(tableName, colName, 0));
+		while(start < indexPageCount && end < indexPageCount) {
+			if(start == end) {
+				end++;
+				continue;
+			}
+			startPage = readPage(dbHelper.getIndexPagePath(tableName, colName, start));
+			IndexPage endPage = readPage(dbHelper.getIndexPagePath(tableName, colName, end));
+			int startPageSize = startPage.getSize();
+			int endPageSize = endPage.getSize();
+			int needed = maxRowsPerPage - startPageSize;
+			if(startPageSize < maxRowsPerPage) {
+				if(endPageSize > 0) {
+					int take = Math.min(endPageSize, needed);
+					Stack<IndexPair> stack = new Stack<>();
+					while(!endPage.getIndexPage().isEmpty())
+						stack.push(endPage.getIndexPage().remove(endPage.getSize() - 1));
+					while(take-- > 0) {
+						startPage.getIndexPage().add(stack.pop());
+						needed--;
+					}
+					if(needed == 0) {
+						writePage(dbHelper.getIndexPagePath(tableName, colName, start), startPage);
+						start++;
+					}
+					while(!stack.isEmpty())
+						endPage.getIndexPage().add(stack.pop());
+				} else {
+					end++;
+				}
+			} else {
+				writePage(dbHelper.getIndexPagePath(tableName, colName, start), startPage);
+				start++;
+			}
+		}
+		if(start < indexPageCount && startPage.getSize() > 0)
+			writePage(dbHelper.getIndexPagePath(tableName, colName, start++), startPage);
+		
+		while (start < indexPageCount) { // delete extra pages
+			File file = new File(dbHelper.getIndexPagePath(tableName, colName, start++));
+			file.delete();
+		}
+	}
+	
+	public void pushDown(int start, int maxRowsPerPage) {
+		for(; start < indexPageCount; start++) {
+			IndexPage startPage = readPage(dbHelper.getIndexPagePath(tableName, colName, start));
+			int startPageSize = startPage.getSize();
+			if(startPageSize > maxRowsPerPage) {
+				if(start < indexPageCount - 1) {
+					IndexPage nextPage = readPage(dbHelper.getIndexPagePath(tableName, colName, start + 1));
+					nextPage.getIndexPage().add(0, startPage.getIndexPage().remove(startPage.getSize() - 1));
+					writePage(dbHelper.getIndexPagePath(tableName, colName, start + 1), nextPage);
+				} else {
+					IndexPage lastPage = new IndexPage();
+					lastPage.getIndexPage().add(startPage.getIndexPage().remove(startPage.getSize() - 1));
+					writePage(dbHelper.getIndexPagePath(tableName, colName, start + 1), lastPage);
+				}
+			}
+			writePage(dbHelper.getIndexPagePath(tableName, colName, start), startPage);
 		}
 	}
 	

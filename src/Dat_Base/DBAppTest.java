@@ -2,7 +2,6 @@ package Dat_Base;
 
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.Iterator;
 
 public class DBAppTest {
 
@@ -82,7 +81,7 @@ public class DBAppTest {
 	public static void printPage(DBApp db, String tableName, int pageNumber) {
 		String path = db.getDbHelper().getDBPath() + "/data/" + tableName + "/" + tableName + "_"
 				+ String.valueOf(pageNumber);
-		Page p = new Table(tableName).readPage(path);
+		Page p = new Table(tableName, db.getDbHelper()).readPage(path);
 		System.out.println(p);
 	}
 
@@ -101,16 +100,38 @@ public class DBAppTest {
 		printIndexPage(db, "Student", "id", 0);
 		printIndexPage(db, "Student", "gpa", 0);
 		
-		SQLTerm[] sqlTerms;
-		sqlTerms = new SQLTerm[3];
+//		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
 		
-		sqlTerms[0] = new SQLTerm("Student", "name", "=", "Ahmed Noor");
-		sqlTerms[1] = new SQLTerm("Student", "gpa", "=", new Double( 0.95 ));
-		sqlTerms[2] = new SQLTerm("Student", "gpa", "=", new Double( 0.69 ));
+//		htblColNameValue.clear();
+//		htblColNameValue.put("id", 2343432);
+//		db.deleteFromTable("Student", htblColNameValue);
+//		
+//		htblColNameValue.clear();
+//		htblColNameValue.put("id", 2343223);
+//		db.deleteFromTable("Student", htblColNameValue);
+//		
+//		htblColNameValue.clear();
+//		htblColNameValue.put("id", 5674567);
+//		db.deleteFromTable("Student", htblColNameValue);
+//		
+//		htblColNameValue.clear();
+//		htblColNameValue.put("id", 23498);
+//		db.deleteFromTable("Student", htblColNameValue);
+//		
+//		htblColNameValue.clear();
+//		htblColNameValue.put("id", 78452);
+//		db.deleteFromTable("Student", htblColNameValue);
 		
-		String[] operators = new String[2];
-		operators[0] = "AND"; 
-		operators[1] = "OR"; 
+//		SQLTerm[] sqlTerms;
+//		sqlTerms = new SQLTerm[3];
+//		
+//		sqlTerms[0] = new SQLTerm("Student", "name", "=", "Ahmed Noor");
+//		sqlTerms[1] = new SQLTerm("Student", "gpa", "=", new Double( 0.95 ));
+//		sqlTerms[2] = new SQLTerm("Student", "gpa", "=", new Double( 0.69 ));
+//		
+//		String[] operators = new String[2];
+//		operators[0] = "AND"; 
+//		operators[1] = "OR"; 
 		
 //		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
 //		htblColNameValue.put("id", new Integer(888));
@@ -119,12 +140,23 @@ public class DBAppTest {
 //		
 //		Record record = new Record("id", htblColNameValue);
 //		htblColNameValue.clear();
-//		QueryManager queryManager = new QueryManager();
+		QueryManager queryManager = new QueryManager(db.getDbHelper());
 		
-		Iterator<Record> it = db.selectFromTable(sqlTerms, operators);
-		while(it.hasNext())
-			System.out.println(it.next());
+//		Iterator<Record> it = db.selectFromTable(sqlTerms, operators);
+//		while(it.hasNext())
+//			System.out.println(it.next());
+		
+		printPage(db, "Student", 0);
+		printIndexPage(db, "Student", "id", 0);
+		printIndexPage(db, "Student", "gpa", 0);
 
+		PositionPair pp1 = queryManager.searchTablePages("Student", 2343223);
+		
+		PositionPair pp2 = queryManager.searchIndexPages("Student", "gpa", 50.7);
+		
+		System.out.println(pp1);
+		System.out.println(pp2);
+		
 //		System.out.println(db.getTables());
 //		Hashtable<String, String> table1 = new Hashtable<>();
 //		table1.put("x", "java.lang.Integer");

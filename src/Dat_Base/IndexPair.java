@@ -31,9 +31,9 @@ public class IndexPair implements Comparable<IndexPair>, Serializable {
 
 	public void insert(int index, String bit) {
 		System.out.println("Index: " + index + "String: " + bits);
-		if(index == bits.length())
+		if (index == bits.length())
 			bits += bit;
-		else if(index == 0)
+		else if (index == 0)
 			bits = bit + bits;
 		else
 			bits = bits.substring(0, index) + bit + bits.substring(index, bits.length());
@@ -41,11 +41,11 @@ public class IndexPair implements Comparable<IndexPair>, Serializable {
 	}
 
 	public void delete(int index) {
-		if(index == 0 && index == bits.length() - 1)
+		if (index == 0 && index == bits.length() - 1)
 			bits = "";
-		else if(index == bits.length() - 1)
+		else if (index == bits.length() - 1)
 			bits = bits.substring(0, bits.length() - 1);
-		else if(index == 0)
+		else if (index == 0)
 			bits = bits.substring(1, bits.length());
 		else
 			bits = bits.substring(0, index) + bits.substring(index + 1, bits.length());
@@ -70,6 +70,52 @@ public class IndexPair implements Comparable<IndexPair>, Serializable {
 		for (int i = 0; i < a.length(); i++)
 			res.append(a.charAt(i) != b.charAt(i) ? '1' : '0');
 		return res.toString();
+	}
+
+	public void encode() {
+		String string = bits;
+		if (string == null || string.isEmpty())
+			bits = "";
+		StringBuilder builder = new StringBuilder();
+		char[] chars = string.toCharArray();
+		char current = '0';
+		int count = 0;
+		for (int i = 0; i < chars.length; i++) {
+			if (current == chars[i]) {
+				count++;
+			} else {
+				builder.append(count + ",");
+				if (current == '0')
+					current = '1';
+				else
+					current = '0';
+				count = 1;
+			}
+		}
+		builder.append(count);
+		bits = builder.toString();
+	}
+
+	public void decode() {
+		String string = bits;
+		if (string == null || string.isEmpty())
+			bits = "";
+		StringBuilder builder = new StringBuilder();
+		String[] Array = string.split(",");
+		for (int i = 0; i < Array.length; i++) {
+			int repetitions = Integer.parseInt(Array[i]);
+			if (i % 2 == 0) {
+				for (int j = 0; j < repetitions; j++) {
+					builder.append("0");
+				}
+			} else {
+				for (int j = 0; j < repetitions; j++) {
+					builder.append("1");
+				}
+			}
+
+		}
+		bits = builder.toString();
 	}
 
 	@Override

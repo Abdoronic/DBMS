@@ -58,7 +58,7 @@ public class DBHelper {
 			String[] tokens;
 			while (buffer.ready()) {
 				tokens = buffer.readLine().split(",");
-				tables.put(tokens[0], new Table(tokens[0]));
+				tables.put(tokens[0], new Table(tokens[0], this));
 			}
 			buffer.close();
 		} catch (IOException e) {
@@ -76,7 +76,7 @@ public class DBHelper {
 			while (buffer.ready()) {
 				tokens = buffer.readLine().split(",");
 				if(tokens[0].equals(tableName)) {
-					table = new Table(tableName);
+					table = new Table(tableName, this);
 					break;
 				} 
 			}

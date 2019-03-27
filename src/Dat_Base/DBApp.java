@@ -40,7 +40,7 @@ public class DBApp {
 		if (!htblColNameType.containsKey(strClusteringKeyColumn))
 			throw new DBAppException("Table " + strTableName + " must have a primary key!");
 
-		Table newTable = new Table(strTableName);
+		Table newTable = new Table(strTableName, dbHelper);
 		tables.put(strTableName, newTable);
 
 		try {
@@ -73,7 +73,7 @@ public class DBApp {
 		// Write to metadata
 		dbHelper.setIndexed(strTableName, strColName);
 
-		Table table = tables.get(strTableName);
+		Table table = dbHelper.getTable(strTableName);
 
 		// Get Total number of records in Table
 		int tableSize = dbHelper.calcTableSize(table);
@@ -117,7 +117,7 @@ public class DBApp {
 	@SuppressWarnings("unchecked")
 	public void updateTable(String strTableName, String strKey, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException {
-		Table table = tables.get(strTableName);
+		Table table = dbHelper.getTable(strTableName);
 		if (table == null)
 			throw new DBAppException("Table is not found!");
 
@@ -198,7 +198,7 @@ public class DBApp {
 	@SuppressWarnings("unchecked")
 	public boolean insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException {
-		Table table = tables.get(strTableName);
+		Table table = dbHelper.getTable(strTableName);
 		if (table == null)
 			throw new DBAppException("Table is not found!");
 
@@ -322,7 +322,7 @@ public class DBApp {
 
 	public void deleteFromTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
-		Table table = tables.get(strTableName);
+		Table table = dbHelper.getTable(strTableName);
 		if (table == null)
 			throw new DBAppException("Table is not found!");
 
@@ -383,6 +383,8 @@ public class DBApp {
 		if (arrSQLTerms.length == 0)
 			throw new DBAppException("Invalid Where Clause");
 		String tableName = arrSQLTerms[0].getTableName();
+		if(!tables.containsKey(tableName))
+			throw new DBAppException("Table Does not exist");
 		Hashtable<String, Object> htbColNameValue = null;
 		try {
 			htbColNameValue = dbHelper.getTableColNameType(tableName);
@@ -399,8 +401,8 @@ public class DBApp {
 						"Column: " + arrSQLTerms[i].getColumnName() + " does not exist in Table: " + tableName);
 		}
 		Vector<Record> result = new Vector<>();
-		Table table = tables.get(tableName);
-		QueryManager queryManager = new QueryManager();
+		Table table = dbHelper.getTable(tableName);
+		QueryManager queryManager = new QueryManager(dbHelper);
 		for(int i = 0; i < table.getPageCount(); i++) {
 			Page currPage = table.readPage(dbHelper.getPagePath(tableName, i));
 			for(int j = 0; j < currPage.getSize(); j++) {

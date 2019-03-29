@@ -159,10 +159,10 @@ public class QueryManager {
 	public String getValidPositionsByIndex(SQLTerm sqlTerm) {
 		String tableName = sqlTerm.getTableName();
 		String colName = sqlTerm.getColumnName();
-		int indexSize = dbHelper.getIndexSize(tableName, colName);
+		int tableSize = dbHelper.getTableSize(tableName);
 
 		if (!dbHelper.isIndexed(tableName, colName))
-			return new IndexPair(null, indexSize, "1").getBits();
+			return new IndexPair(null, tableSize, "1").getBits();
 
 		BitMap bitMap = new BitMap(tableName, colName, dbHelper, this);
 
@@ -186,12 +186,12 @@ public class QueryManager {
 		
 		if (operator.equals("=")) {
 			if (isGreatest || !isEqual)
-				return new IndexPair(null, indexSize).getBits();
+				return new IndexPair(null, tableSize).getBits();
 			return currIndexPage.getIndexPair(recordIndex).getBits();
 		} else if (operator.equals("!=")) {
 			if (isGreatest || !isEqual)
-				return new IndexPair(null, indexSize, "1").getBits();
-			String a = new IndexPair(null, indexSize, "1").getBits();
+				return new IndexPair(null, tableSize, "1").getBits();
+			String a = new IndexPair(null, tableSize, "1").getBits();
 			String b = currIndexPage.getIndexPair(recordIndex).getBits();
 			return IndexPair.xor(a, b);
 		} else if (operator.equals("<=")) {
@@ -199,20 +199,20 @@ public class QueryManager {
 				--end;
 		} else if (operator.equals(">=")) {
 			if(isGreatest)
-				return new IndexPair(null, indexSize).getBits();
+				return new IndexPair(null, tableSize).getBits();
 			start = end - 1;
-			end = indexSize;
+			end = tableSize;
 			pc = start / maxRowsPerPage;
 		} else if (operator.equals("<")) {
 			--end;
 		} else if (operator.equals(">")) {
 			if(isGreatest)
-				return new IndexPair(null, indexSize).getBits();
+				return new IndexPair(null, tableSize).getBits();
 			start = end - 1;
-			end = indexSize;
+			end = tableSize;
 			pc = start / maxRowsPerPage;
 		}
-		String res = new IndexPair(null, indexSize).getBits();
+		String res = new IndexPair(null, tableSize).getBits();
 		currIndexPage = bitMap.readPage(dbHelper.getIndexPagePath(tableName, colName, pc));
 		for(int i = start; i < end; i++) {
 			if(i == maxRowsPerPage)

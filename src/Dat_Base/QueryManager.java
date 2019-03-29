@@ -176,9 +176,9 @@ public class QueryManager {
 
 		String operator = sqlTerm.getOperator();
 
-		boolean isEqual = currIndexPage.getIndexPair(recordIndex).getValue()
-				.compareTo((Comparable<Object>) sqlTerm.getObjValue()) == 0;
 		boolean isGreatest = recordIndex >= currIndexPage.getSize();
+		boolean isEqual = !isGreatest ? currIndexPage.getIndexPair(recordIndex).getValue()
+				.compareTo((Comparable<Object>) sqlTerm.getObjValue()) == 0 : false;
 
 		int maxRowsPerPage = dbHelper.getBitmapSize();
 		

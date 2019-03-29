@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 public class DBApp {
 
 	private DBHelper dbHelper;
+	private QueryManager queryManager;
 	private Hashtable<String, Table> tables;
 
 	public DBApp() {
@@ -25,6 +26,7 @@ public class DBApp {
 
 	public void init() {
 		this.dbHelper = new DBHelper();
+		this.queryManager = new QueryManager(dbHelper);
 		this.tables = dbHelper.getTables();
 	}
 
@@ -40,7 +42,7 @@ public class DBApp {
 		if (!htblColNameType.containsKey(strClusteringKeyColumn))
 			throw new DBAppException("Table " + strTableName + " must have a primary key!");
 
-		Table newTable = new Table(strTableName);
+		Table newTable = new Table(strTableName, dbHelper);
 		tables.put(strTableName, newTable);
 
 		try {
@@ -69,11 +71,11 @@ public class DBApp {
 			e.printStackTrace(System.err);
 		}
 		// Create required Folders
-		BitMap bitMap = new BitMap(strTableName, strColName, dbHelper);
+		BitMap bitMap = new BitMap(strTableName, strColName, dbHelper, queryManager);
 		// Write to metadata
 		dbHelper.setIndexed(strTableName, strColName);
 
-		Table table = tables.get(strTableName);
+		Table table = dbHelper.getTable(strTableName);
 
 		// Get Total number of records in Table
 		int tableSize = dbHelper.calcTableSize(table);
@@ -117,7 +119,7 @@ public class DBApp {
 	@SuppressWarnings("unchecked")
 	public void updateTable(String strTableName, String strKey, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException {
-		Table table = tables.get(strTableName);
+		Table table = dbHelper.getTable(strTableName);
 		if (table == null)
 			throw new DBAppException("Table is not found!");
 
@@ -165,7 +167,7 @@ public class DBApp {
 						}
 						if (old.containsKey(colName)) {
 							if (dbHelper.isIndexed(strTableName, colName)) {
-								BitMap colBitMap = new BitMap(strTableName, colName, dbHelper);
+								BitMap colBitMap = new BitMap(strTableName, colName, dbHelper, queryManager);
 								colBitMap.updateBitMap((Comparable<Object>) old.get(colName),
 										(Comparable<Object>) htblColNameValue.get(colName), insertedIndex);
 							}
@@ -198,7 +200,7 @@ public class DBApp {
 	@SuppressWarnings("unchecked")
 	public boolean insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException {
-		Table table = tables.get(strTableName);
+		Table table = dbHelper.getTable(strTableName);
 		if (table == null)
 			throw new DBAppException("Table is not found!");
 
@@ -313,7 +315,7 @@ public class DBApp {
 		}
 		for (Map.Entry<String, Object> e : htblColNameValue.entrySet()) {
 			if (dbHelper.isIndexed(strTableName, e.getKey())) {
-				BitMap colBitMap = new BitMap(strTableName, e.getKey(), dbHelper);
+				BitMap colBitMap = new BitMap(strTableName, e.getKey(), dbHelper, queryManager);
 				colBitMap.insertIntoBitMap((Comparable<Object>) e.getValue(), recordTableIndex, true);
 			}
 		}
@@ -322,7 +324,7 @@ public class DBApp {
 
 	public void deleteFromTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
-		Table table = tables.get(strTableName);
+		Table table = dbHelper.getTable(strTableName);
 		if (table == null)
 			throw new DBAppException("Table is not found!");
 
@@ -360,7 +362,7 @@ public class DBApp {
 				} else {
 					for (String colName : v.get(i).getRecord().keySet()) {
 						if (dbHelper.isIndexed(strTableName, colName)) {
-							BitMap colBitMap = new BitMap(strTableName, colName, dbHelper);
+							BitMap colBitMap = new BitMap(strTableName, colName, dbHelper, queryManager);
 							colBitMap.deleteFromBitMap(recordIndex - deleted);
 						}
 					}
@@ -383,6 +385,8 @@ public class DBApp {
 		if (arrSQLTerms.length == 0)
 			throw new DBAppException("Invalid Where Clause");
 		String tableName = arrSQLTerms[0].getTableName();
+		if(!tables.containsKey(tableName))
+			throw new DBAppException("Table Does not exist");
 		Hashtable<String, Object> htbColNameValue = null;
 		try {
 			htbColNameValue = dbHelper.getTableColNameType(tableName);
@@ -399,20 +403,37 @@ public class DBApp {
 						"Column: " + arrSQLTerms[i].getColumnName() + " does not exist in Table: " + tableName);
 		}
 		Vector<Record> result = new Vector<>();
-		Table table = tables.get(tableName);
-		QueryManager queryManager = new QueryManager();
-		for(int i = 0; i < table.getPageCount(); i++) {
-			Page currPage = table.readPage(dbHelper.getPagePath(tableName, i));
-			for(int j = 0; j < currPage.getSize(); j++) {
-				if(queryManager.verfiyWhereClause(arrSQLTerms, strarrOperators, currPage.getRecord(j)))
-					result.add(currPage.getRecord(j));
-			}
+		
+		Table table = dbHelper.getTable(tableName);
+		
+		if(table.getPageCount() == 0) return result.iterator();
+		
+		QueryManager queryManager = new QueryManager(dbHelper);
+		
+		String bits = queryManager.getSearchSpace(arrSQLTerms, strarrOperators);
+		
+		int maximumRowsCountInPage = dbHelper.getMaximumRowsCountInPage();
+		
+		int pc = 0;
+		Page currPage = table.readPage(dbHelper.getPagePath(tableName, pc));
+		for(int i = 0; i < bits.length(); i++) {
+			if(bits.charAt(i) == '0') continue;
+			int recordPage = i / maximumRowsCountInPage;
+			int recordIndex = i % maximumRowsCountInPage;
+			if(recordPage > pc)
+				currPage = table.readPage(dbHelper.getPagePath(tableName, ++pc));
+			if(queryManager.verfiyWhereClause(arrSQLTerms, strarrOperators, currPage.getRecord(recordIndex)))
+				result.add(currPage.getRecord(recordIndex));
 		}
 		return result.iterator();
 	}
 
 	public DBHelper getDbHelper() {
 		return dbHelper;
+	}
+	
+	public QueryManager getQueryManager() {
+		return queryManager;
 	}
 
 	public Hashtable<String, Table> getTables() {

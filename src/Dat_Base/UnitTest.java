@@ -10,7 +10,7 @@ public class UnitTest {
 	static String[]names= {"Yahia","Ouda","Ronic","Manta","Merna","Youstina","Joe","Ziad","Moe"};
 	public static void testUpdate(DBApp db) throws DBAppException{
 		System.out.println("----------- Testing Update -----------");
-		String strTableName = "Student";
+//		String strTableName = "Student";
 		double gpaold = (double)((int)(Math.random()*10));
 		double gpanew = (double)((int)(Math.random()*10));
 		System.out.println("We will update the GPA from: "+gpaold+" to GPA: "+ gpanew);
@@ -122,7 +122,7 @@ public class UnitTest {
 	}
 	public static void printIndexTable(DBApp db, String tableName, String colName)
 	{
-		BitMap bm = new BitMap(tableName, colName, db.getDbHelper());
+		BitMap bm = new BitMap(tableName, colName, db.getDbHelper(), db.getQueryManager());
 		for(int i=0;i < bm.getPageCount();i++)
 			printIndexPage(db, tableName, colName, i);
 	}
@@ -145,6 +145,8 @@ public class UnitTest {
 		
 
 	}
+	
+	@SuppressWarnings("unchecked")
 	public static ArrayList<Integer> getRows(DBApp db, String tableName, String colName, Object o)
 	{
 		Comparable<Object> value = (Comparable<Object>)o;
@@ -163,6 +165,8 @@ public class UnitTest {
 		}
 		return a;
 	}
+	
+	@SuppressWarnings("unchecked")
 	public static ArrayList<Integer> getRow(Page p, String colName, Comparable<Object> value)
 	{
 		Vector<Record> v = p.getPage();
@@ -178,6 +182,8 @@ public class UnitTest {
 		}
 		return a;
 	}
+	
+	@SuppressWarnings("unchecked")
 	public static boolean isInThisBitMap(DBApp db, String tableName, String colName, BitMap bp, Object o, ArrayList<Integer> row)
 	{
 		Comparable<Object> value = (Comparable<Object>)o;
@@ -213,24 +219,24 @@ public class UnitTest {
 	public static void printPage(DBApp db, String tableName, int pageNumber) {
 		String path = db.getDbHelper().getDBPath() + "/data/" + tableName + "/" + tableName + "_"
 				+ String.valueOf(pageNumber);
-		Page p = new Table(tableName).readPage(path);
+		Page p = new Table(tableName, db.getDbHelper()).readPage(path);
 		System.out.println(p);
 	}
 	public static Page getPage(DBApp db, String tableName, int pageNumber) {
 		String path = db.getDbHelper().getDBPath() + "/data/" + tableName + "/" + tableName + "_"
 				+ String.valueOf(pageNumber);
-		Page p = new Table(tableName).readPage(path);
+		Page p = new Table(tableName, db.getDbHelper()).readPage(path);
 		return p;
 	}
 
 	public static void printIndexPage(DBApp db, String tableName, String colName, int pageNumber) {
 		String path = db.getDbHelper().getIndexPagePath(tableName, colName, pageNumber);
-		IndexPage p = new BitMap(tableName, colName, db.getDbHelper()).readPage(path);
+		IndexPage p = new BitMap(tableName, colName, db.getDbHelper(), db.getQueryManager()).readPage(path);
 		System.out.println(p);
 	}
 	public static IndexPage getIndexPage(DBApp db, String tableName, String colName, int pageNumber) {
 		String path = db.getDbHelper().getIndexPagePath(tableName, colName, pageNumber);
-		IndexPage p = new BitMap(tableName, colName, db.getDbHelper()).readPage(path);
+		IndexPage p = new BitMap(tableName, colName, db.getDbHelper(), db.getQueryManager()).readPage(path);
 		return p;
 	}
 

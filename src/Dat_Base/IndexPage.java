@@ -56,6 +56,16 @@ public class IndexPage implements Serializable {
 		for (int i = 0; i < indexPage.size(); i++)
 			indexPage.get(i).delete(index);
 	}
+	
+	public void encode() {
+		for(int i = 0; i < indexPage.size(); i++)
+			indexPage.get(i).encode();
+	}
+	
+	public void decode() {
+		for(int i = 0; i < indexPage.size(); i++)
+			indexPage.get(i).decode();
+	}
 
 	public Vector<IndexPair> getIndexPage() {
 		return indexPage;

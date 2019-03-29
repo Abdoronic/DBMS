@@ -20,6 +20,14 @@ public class IndexPair implements Comparable<IndexPair>, Serializable {
 			res.append('0');
 		this.bits = res.toString();
 	}
+	
+	public IndexPair(Comparable<Object> value, int size, String bit) {
+		this.value = value;
+		StringBuilder res = new StringBuilder();
+		for (int i = 0; i < size; i++)
+			res.append(bit);
+		this.bits = res.toString();
+	}
 
 	public void set(int index) {
 		bits = bits.substring(0, index) + "1" + bits.substring(index + 1, bits.length());

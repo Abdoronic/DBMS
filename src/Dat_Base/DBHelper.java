@@ -103,6 +103,20 @@ public class DBHelper {
 		}
 		return 0;
 	}
+	
+	public int getIndexSize(String tableName, String colName) {
+		BitMap bitMap = new BitMap(tableName, colName, this);
+		return calcIndexSizeSize(bitMap);
+	}
+	
+	public int calcIndexSizeSize(BitMap bitMap) {
+		if(bitMap.getPageCount() > 0) {
+			int indexSize = (bitMap.getPageCount() - 1) * getBitmapSize();
+			indexSize += bitMap.readPage(getIndexPagePath(bitMap.getTableName(), bitMap.getColName(), bitMap.getPageCount() - 1)).getSize();
+			return indexSize;
+		}
+		return 0;
+	}
 
 	public void addToMetaData(String tableName, String primaryKey, Hashtable<String, String> colNameType)
 			throws IOException {

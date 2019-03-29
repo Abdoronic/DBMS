@@ -15,6 +15,7 @@ public class BitMap {
 	private String colName;
 	private int indexPageCount;
 	private DBHelper dbHelper;
+	private QueryManager queryManager;
 	
 	/**
 	 * 
@@ -28,6 +29,15 @@ public class BitMap {
 		this.colName = colName;
 		this.indexPageCount = createFolderAndCountPages();
 		this.dbHelper = dbHelper;
+		this.queryManager = null;
+	}
+	
+	public BitMap(String tableName, String colName, DBHelper dbHelper, QueryManager queryManager) {
+		this.tableName = tableName;
+		this.colName = colName;
+		this.indexPageCount = createFolderAndCountPages();
+		this.dbHelper = dbHelper;
+		this.queryManager = queryManager;
 	}
 	
 	/**

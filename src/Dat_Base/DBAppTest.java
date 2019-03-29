@@ -2,6 +2,7 @@ package Dat_Base;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 public class DBAppTest {
 
@@ -87,17 +88,17 @@ public class DBAppTest {
 
 	public static void printIndexPage(DBApp db, String tableName, String colName, int pageNumber) {
 		String path = db.getDbHelper().getIndexPagePath(tableName, colName, pageNumber);
-		IndexPage p = new BitMap(tableName, colName, db.getDbHelper()).readPage(path);
+		IndexPage p = new BitMap(tableName, colName, db.getDbHelper(), db.getQueryManager()).readPage(path);
 		System.out.println(p);
 	}
 
 	public static void main(String[] args) throws DBAppException, IOException {
 		DBApp db = new DBApp();
 
-		testCreation(db);
+//		testCreation(db);
 
 		printPage(db, "Student", 0);
-		printIndexPage(db, "Student", "id", 0);
+//		printIndexPage(db, "Student", "id", 0);
 		printIndexPage(db, "Student", "gpa", 0);
 		
 //		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
@@ -122,16 +123,20 @@ public class DBAppTest {
 //		htblColNameValue.put("id", 78452);
 //		db.deleteFromTable("Student", htblColNameValue);
 		
-//		SQLTerm[] sqlTerms;
-//		sqlTerms = new SQLTerm[3];
-//		
-//		sqlTerms[0] = new SQLTerm("Student", "name", "=", "Ahmed Noor");
-//		sqlTerms[1] = new SQLTerm("Student", "gpa", "=", new Double( 0.95 ));
+		SQLTerm[] sqlTerms;
+		sqlTerms = new SQLTerm[2];
+		
+		sqlTerms[0] = new SQLTerm("Student", "name", "=", "Ronic");
+		sqlTerms[1] = new SQLTerm("Student", "gpa", ">=", new Double( 4.0 ));
 //		sqlTerms[2] = new SQLTerm("Student", "gpa", "=", new Double( 0.69 ));
-//		
-//		String[] operators = new String[2];
-//		operators[0] = "AND"; 
+//		sqlTerms[3] = new SQLTerm("Student", "gpa", "!=", new Double( 0.95));
+		
+		//01110
+		
+		String[] operators = new String[1];
+		operators[0] = "OR"; 
 //		operators[1] = "OR"; 
+//		operators[2] = "OR"; 
 		
 //		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
 //		htblColNameValue.put("id", new Integer(888));
@@ -140,22 +145,22 @@ public class DBAppTest {
 //		
 //		Record record = new Record("id", htblColNameValue);
 //		htblColNameValue.clear();
-		QueryManager queryManager = new QueryManager(db.getDbHelper());
+//		QueryManager queryManager = new QueryManager(db.getDbHelper());
 		
-//		Iterator<Record> it = db.selectFromTable(sqlTerms, operators);
-//		while(it.hasNext())
-//			System.out.println(it.next());
+		Iterator<Record> it = db.selectFromTable(sqlTerms, operators);
+		while(it.hasNext())
+			System.out.println(it.next());
 		
-		printPage(db, "Student", 0);
-		printIndexPage(db, "Student", "id", 0);
-		printIndexPage(db, "Student", "gpa", 0);
+//		printPage(db, "Student", 0);
+//		printIndexPage(db, "Student", "id", 0);
+//		printIndexPage(db, "Student", "gpa", 0);
 
-		PositionPair pp1 = queryManager.searchTablePages("Student", 2343223);
+//		PositionPair pp1 = queryManager.searchTablePages("Student", 2343223);
 		
-		PositionPair pp2 = queryManager.searchIndexPages("Student", "gpa", 50.7);
+//		PositionPair pp2 = queryManager.searchIndexPages("Student", "gpa", 50.7);
 		
-		System.out.println(pp1);
-		System.out.println(pp2);
+//		System.out.println(pp1);
+//		System.out.println(pp2);
 		
 //		System.out.println(db.getTables());
 //		Hashtable<String, String> table1 = new Hashtable<>();

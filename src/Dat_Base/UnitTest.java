@@ -122,7 +122,7 @@ public class UnitTest {
 	}
 	public static void printIndexTable(DBApp db, String tableName, String colName)
 	{
-		BitMap bm = new BitMap(tableName, colName, db.getDbHelper(), db.getQueryManager());
+		BitMap bm = new BitMap(tableName, colName, db.getDbHelper());
 		for(int i=0;i < bm.getPageCount();i++)
 			printIndexPage(db, tableName, colName, i);
 	}
@@ -231,12 +231,12 @@ public class UnitTest {
 
 	public static void printIndexPage(DBApp db, String tableName, String colName, int pageNumber) {
 		String path = db.getDbHelper().getIndexPagePath(tableName, colName, pageNumber);
-		IndexPage p = new BitMap(tableName, colName, db.getDbHelper(), db.getQueryManager()).readPage(path);
+		IndexPage p = new BitMap(tableName, colName, db.getDbHelper()).readPage(path);
 		System.out.println(p);
 	}
 	public static IndexPage getIndexPage(DBApp db, String tableName, String colName, int pageNumber) {
 		String path = db.getDbHelper().getIndexPagePath(tableName, colName, pageNumber);
-		IndexPage p = new BitMap(tableName, colName, db.getDbHelper(), db.getQueryManager()).readPage(path);
+		IndexPage p = new BitMap(tableName, colName, db.getDbHelper()).readPage(path);
 		return p;
 	}
 

@@ -24,10 +24,10 @@ public class DBAppTest {
 		htblColNameValue.put("gpa", new Double(0.95));
 		db.insertIntoTable(strTableName, htblColNameValue);
 		htblColNameValue.clear();
-		
-		System.out.println("-----------------");
-		printIndexPage(db, "Student", "id", 0);
-		System.out.println("-----------------");
+//		
+//		System.out.println("-----------------");
+//		printIndexPage(db, "Student", "id", 0);
+//		System.out.println("-----------------");
 
 		htblColNameValue.put("id", new Integer(2343223));
 		htblColNameValue.put("name", new String("Ahmed Noor"));
@@ -38,7 +38,7 @@ public class DBAppTest {
 //		System.out.println("-----------------");
 //		printIndexPage(db, "Student", "id", 0);
 //		System.out.println("-----------------");
-		
+//		
 		htblColNameValue.put("id", new Integer(5674567));
 		htblColNameValue.put("name", new String("Dalia Noor"));
 		htblColNameValue.put("gpa", new Double(1.25));
@@ -55,25 +55,25 @@ public class DBAppTest {
 		htblColNameValue.put("gpa", new Double(1.5));
 		db.insertIntoTable(strTableName, htblColNameValue);
 		htblColNameValue.clear();
-		System.out.println(db.getTables().get(strTableName).getPageCount());
+//		System.out.println(db.getTables().get(strTableName).getPageCount());
 
 		htblColNameValue.put("id", new Integer(78452));
 		htblColNameValue.put("name", new String("Zaky Noor"));
 		htblColNameValue.put("gpa", new Double(0.88));
 		db.insertIntoTable(strTableName, htblColNameValue);
-		System.out.println(db.getTables().get(strTableName).getPageCount());
-		System.out.println("###############");
-		
-//		htblColNameValue.clear();
-//		htblColNameValue.put("name", "Zaky Noor");
-//		
-//		db.deleteFromTable(strTableName, htblColNameValue);
+//		System.out.println(db.getTables().get(strTableName).getPageCount());
+//		System.out.println("###############");
 		
 		htblColNameValue.clear();
-		htblColNameValue.put("gpa", 0.69);
+		htblColNameValue.put("name", "Zaky Noor");
 		
-		db.updateTable(strTableName, "78452", htblColNameValue);
+		db.deleteFromTable(strTableName, htblColNameValue);
 		
+//		htblColNameValue.clear();
+//		htblColNameValue.put("gpa", 0.69);
+//		
+//		db.updateTable(strTableName, "78452", htblColNameValue);
+//		
 //		db.createBitmapIndex(strTableName, "id");
 //		db.createBitmapIndex(strTableName, "gpa");
 
@@ -88,17 +88,17 @@ public class DBAppTest {
 
 	public static void printIndexPage(DBApp db, String tableName, String colName, int pageNumber) {
 		String path = db.getDbHelper().getIndexPagePath(tableName, colName, pageNumber);
-		IndexPage p = new BitMap(tableName, colName, db.getDbHelper(), db.getQueryManager()).readPage(path);
+		IndexPage p = new BitMap(tableName, colName, db.getDbHelper()).readPage(path);
 		System.out.println(p);
 	}
 
 	public static void main(String[] args) throws DBAppException, IOException {
 		DBApp db = new DBApp();
 
-//		testCreation(db);
+		testCreation(db);
 
 		printPage(db, "Student", 0);
-//		printIndexPage(db, "Student", "id", 0);
+		printIndexPage(db, "Student", "id", 0);
 		printIndexPage(db, "Student", "gpa", 0);
 		
 //		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
@@ -123,18 +123,18 @@ public class DBAppTest {
 //		htblColNameValue.put("id", 78452);
 //		db.deleteFromTable("Student", htblColNameValue);
 		
-		SQLTerm[] sqlTerms;
-		sqlTerms = new SQLTerm[2];
-		
-		sqlTerms[0] = new SQLTerm("Student", "name", "=", "Ronic");
-		sqlTerms[1] = new SQLTerm("Student", "gpa", ">=", new Double( 4.0 ));
+//		SQLTerm[] sqlTerms;
+//		sqlTerms = new SQLTerm[2];
+//		
+//		sqlTerms[0] = new SQLTerm("Student", "name", "=", "Zaky Noor");
+//		sqlTerms[1] = new SQLTerm("Student", "gpa", ">=", new Double( 4.0 ));
 //		sqlTerms[2] = new SQLTerm("Student", "gpa", "=", new Double( 0.69 ));
 //		sqlTerms[3] = new SQLTerm("Student", "gpa", "!=", new Double( 0.95));
 		
 		//01110
 		
-		String[] operators = new String[1];
-		operators[0] = "OR"; 
+//		String[] operators = new String[1];
+//		operators[0] = "OR"; 
 //		operators[1] = "OR"; 
 //		operators[2] = "OR"; 
 		
@@ -147,9 +147,9 @@ public class DBAppTest {
 //		htblColNameValue.clear();
 //		QueryManager queryManager = new QueryManager(db.getDbHelper());
 		
-		Iterator<Record> it = db.selectFromTable(sqlTerms, operators);
-		while(it.hasNext())
-			System.out.println(it.next());
+//		Iterator<Record> it = db.selectFromTable(sqlTerms, operators);
+//		while(it.hasNext())
+//			System.out.println(it.next());
 		
 //		printPage(db, "Student", 0);
 //		printIndexPage(db, "Student", "id", 0);

@@ -60,12 +60,12 @@ public class Table {
 			e.printStackTrace(System.err);
 		}
 	}
-	
+
 	public void pushUp(int start, int maxRowsPerPage) {
 		int end = start + 1;
 		Page startPage = readPage(dbHelper.getPagePath(tableName, 0));
-		while(start < pageCount && end < pageCount) {
-			if(start == end) {
+		while (start < pageCount && end < pageCount) {
+			if (start == end) {
 				end++;
 				continue;
 			}
@@ -74,21 +74,21 @@ public class Table {
 			int startPageSize = startPage.getSize();
 			int endPageSize = endPage.getSize();
 			int needed = maxRowsPerPage - startPageSize;
-			if(startPageSize < maxRowsPerPage) {
-				if(endPageSize > 0) {
+			if (startPageSize < maxRowsPerPage) {
+				if (endPageSize > 0) {
 					int take = Math.min(endPageSize, needed);
 					Stack<Record> stack = new Stack<>();
-					while(!endPage.getPage().isEmpty())
+					while (!endPage.getPage().isEmpty())
 						stack.push(endPage.getPage().remove(endPage.getSize() - 1));
-					while(take-- > 0) {
+					while (take-- > 0) {
 						startPage.getPage().add(stack.pop());
 						needed--;
 					}
-					if(needed == 0) {
+					if (needed == 0) {
 						writePage(dbHelper.getPagePath(tableName, start), startPage);
 						start++;
 					}
-					while(!stack.isEmpty())
+					while (!stack.isEmpty())
 						endPage.getPage().add(stack.pop());
 				} else {
 					end++;
@@ -98,21 +98,21 @@ public class Table {
 				start++;
 			}
 		}
-		if(start < pageCount && startPage.getSize() > 0)
+		if (start < pageCount && startPage.getSize() > 0)
 			writePage(dbHelper.getPagePath(tableName, start++), startPage);
-		
+
 		while (start < pageCount) { // delete extra pages
 			File file = new File(dbHelper.getPagePath(tableName, start++));
 			file.delete();
 		}
 	}
-	
+
 	public void pushDown(int start, int maxRowsPerPage) {
-		for(; start < pageCount; start++) {
+		for (; start < pageCount; start++) {
 			Page startPage = readPage(dbHelper.getPagePath(tableName, start));
 			int startPageSize = startPage.getSize();
-			if(startPageSize > maxRowsPerPage) {
-				if(start < pageCount - 1) {
+			if (startPageSize > maxRowsPerPage) {
+				if (start < pageCount - 1) {
 					Page nextPage = readPage(dbHelper.getPagePath(tableName, start + 1));
 					nextPage.getPage().add(0, startPage.getPage().remove(startPage.getSize() - 1));
 					writePage(dbHelper.getPagePath(tableName, start + 1), nextPage);
@@ -126,7 +126,27 @@ public class Table {
 		}
 	}
 
-	
+	public void insert(int pageNumber, int recordIndex, Record record) {
+		if (pageCount == 0) {
+			Page newPage = new Page();
+			newPage.getPage().add(record);
+			writePage(dbHelper.getPagePath(tableName, 0), newPage);
+		} else {
+			Page newPage = readPage(dbHelper.getPagePath(tableName, pageNumber));
+			newPage.getPage().add(recordIndex, record);
+			writePage(dbHelper.getPagePath(tableName, pageNumber), newPage);
+			pushDown(pageNumber, dbHelper.getMaximumRowsCountInPage());
+		}
+	}
+
+	public void delete(int pageNumber, int recordIndex) {
+		Page newPage = readPage(dbHelper.getPagePath(tableName, pageNumber));
+		newPage.getPage().remove(recordIndex);
+		writePage(dbHelper.getPagePath(tableName, pageNumber), newPage);
+		pushUp(pageNumber, dbHelper.getMaximumRowsCountInPage());
+		System.out.println("Hereeeee");
+	}
+
 	public String getTableName() {
 		return tableName;
 	}

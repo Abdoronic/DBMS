@@ -38,7 +38,7 @@ public class IndexPage implements Serializable {
 	public boolean paddBits(int index, Comparable<Object> insertedValue, boolean newRecordAdded) {
 		boolean exist = false;
 		for (int i = 0; i < indexPage.size(); i++) {
-			if (indexPage.get(i).getValue().equals(insertedValue)) {
+			if (indexPage.get(i).getValue().compareTo(insertedValue) == 0) {
 				if(newRecordAdded)
 					indexPage.get(i).insert(index, "1");
 				else
@@ -52,9 +52,23 @@ public class IndexPage implements Serializable {
 		return exist;
 	}
 
-	public void deleteBits(int index) {
-		for (int i = 0; i < indexPage.size(); i++)
+	public boolean deleteBits(int index) {
+		boolean removed = false;
+		for (int i = 0; i < indexPage.size(); i++) {
 			indexPage.get(i).delete(index);
+			boolean hasOne = false;
+			for(char c : indexPage.get(i).getBits().toCharArray()) {
+				if(c == '1') {
+					hasOne = true;
+					break;
+				}
+			}
+			if(!hasOne) {
+				indexPage.remove(i);
+				removed = true;
+			}
+		}
+		return removed;
 	}
 	
 	public void encode() {

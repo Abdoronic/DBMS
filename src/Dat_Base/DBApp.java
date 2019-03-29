@@ -1,12 +1,7 @@
 package Dat_Base;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -71,7 +66,7 @@ public class DBApp {
 			e.printStackTrace(System.err);
 		}
 		// Create required Folders
-		BitMap bitMap = new BitMap(strTableName, strColName, dbHelper, queryManager);
+		BitMap bitMap = new BitMap(strTableName, strColName, dbHelper);
 		// Write to metadata
 		dbHelper.setIndexed(strTableName, strColName);
 
@@ -167,7 +162,7 @@ public class DBApp {
 						}
 						if (old.containsKey(colName)) {
 							if (dbHelper.isIndexed(strTableName, colName)) {
-								BitMap colBitMap = new BitMap(strTableName, colName, dbHelper, queryManager);
+								BitMap colBitMap = new BitMap(strTableName, colName, dbHelper);
 								colBitMap.updateBitMap((Comparable<Object>) old.get(colName),
 										(Comparable<Object>) htblColNameValue.get(colName), insertedIndex);
 							}
@@ -197,127 +192,54 @@ public class DBApp {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	public boolean insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException {
+		
 		Table table = dbHelper.getTable(strTableName);
 		if (table == null)
 			throw new DBAppException("Table is not found!");
-
-		FileReader fileReader = null;
+		
+		String primaryKeyColName = "";
+		
 		try {
-			fileReader = new FileReader(dbHelper.getDBPath() + "/data/metadata.csv");
-		} catch (FileNotFoundException e) {
-			System.err.println("Error Reading metadata");
+			primaryKeyColName = dbHelper.getTableKey(strTableName);
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		BufferedReader br = new BufferedReader(fileReader);
-		String curLine = "";
-		ArrayList<HashMap<String, String>> tableCol = new ArrayList<>();
-		String[] info = { "", "name", "type", "key", "indexed" };
-		String primaryKey = "";
+		
+		if(!htblColNameValue.containsKey(primaryKeyColName))
+			throw new DBAppException("Primary Key <" + primaryKeyColName + "> is not provided");
 
+		Hashtable<String, Object> colTableInfo = null;
 		try {
-			while ((curLine = br.readLine()) != null) {
-				// check the split
-				String[] s = curLine.split(",");
-				if (!s[0].equals(strTableName))
-					continue;
-
-				HashMap<String, String> colInfo = new HashMap<>();
-				for (int i = 1; i < 5; i++)
-					colInfo.put(info[i], s[i]);
-
-				if (colInfo.get("key").equals("True"))
-					primaryKey = s[1];
-
-				tableCol.add(colInfo);
-			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
+			colTableInfo = dbHelper.getTableColNameType(strTableName);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		if (tableCol.isEmpty())
-			throw new DBAppException("Table is not found!");
-
 		for (Entry<String, Object> e : htblColNameValue.entrySet()) {
 			String colName = e.getKey();
-			String value = e.getValue() + "";
-			Object checkedValue = null;
-			boolean found = false;
-			for (HashMap<String, String> hm : tableCol) {
-				if (hm.get("name").equals(colName)) {
-					String type = hm.get("type");
-					try {
-						checkedValue = dbHelper.reflect(type, value);
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
-					if (checkedValue != null) {
-						found = true;
-						break;
-					}
-				}
-			}
-			if (!found)
-				throw new DBAppException("Column " + colName + " does not exist!");
+			if (!colTableInfo.containsKey(colName))
+				throw new DBAppException("Column ( " + colName + " ) does not exist");
+			Object value = e.getValue();
+			Object type = colTableInfo.get(colName);
+			if (!value.getClass().equals(type.getClass()))
+				throw new DBAppException("The type of ( " + value + " ) is not right, must be " + type);
 		}
+		
 		// Valid Data to be inserted
-		// We have to insert in the right page
+		
 		htblColNameValue.put("TouchDate", dbHelper.currentDate());
-		Record record = new Record(primaryKey, htblColNameValue);
-
-		int start = 0;
-		int end = table.getPageCount();
-		int recordTableIndex = 0, recordPageIndex;
-		int maximumRowsCountInPage = dbHelper.getMaximumRowsCountInPage();
-		boolean added = false;
-		Page curPage = null;
-		// trying to add the record sequentially
-		while (start < end && !added) {
-			curPage = table.readPage(dbHelper.getPagePath(strTableName, start));
-			recordPageIndex = curPage.addRecord(record, maximumRowsCountInPage);
-			if (recordPageIndex == -1) {
-				recordTableIndex += maximumRowsCountInPage;
-			} else {
-				recordTableIndex += recordPageIndex;
-				added = true;
-			}
-			start++;
-		}
-		if (!added) { // we could not insert in any of the original pages, we have to make new page
-			Page newPage = new Page();
-			newPage.addRecord(record, dbHelper.getMaximumRowsCountInPage());
-			table.writePage(dbHelper.getPagePath(strTableName, end), newPage);
-			table.incPageCount();
-		} else { // we have to check that the page we inserted in did not reach the limit
-			start--; // back to the curPage
-			table.writePage(dbHelper.getPagePath(strTableName, start), curPage);
-			int size = curPage.getSize();
-//			MaximumRowsCountInPage
-			int MaximumRowsCountInPage = dbHelper.getMaximumRowsCountInPage();
-			while (size > MaximumRowsCountInPage) { // pushing the extra elements to the last empty page
-				Record lastRecoed = curPage.getPage().remove(size - 1);
-				table.writePage(dbHelper.getPagePath(strTableName, start), curPage);
-				start++;
-				if (start == end) { // we need to create an extra page
-					Page newPage = new Page();
-					newPage.addRecord(lastRecoed, dbHelper.getMaximumRowsCountInPage());
-					table.writePage(dbHelper.getPagePath(strTableName, end), newPage);
-					table.incPageCount();
-					break;
-				}
-				Page nextPage = table.readPage(dbHelper.getPagePath(strTableName, start));
-				nextPage.addRecord(lastRecoed, dbHelper.getMaximumRowsCountInPage());
-				table.writePage(dbHelper.getPagePath(strTableName, start), nextPage);
-				size = nextPage.getSize();
-				curPage = nextPage;
-			}
-		}
+		Record record = new Record(primaryKeyColName, htblColNameValue);
+		
+		int insertedIndex = queryManager.insertIntoTable(strTableName, record);
+		
+		System.err.println(insertedIndex);
+		
+		if(insertedIndex == -1) throw new DBAppException("Duplicate Key in Record " + record.toString());
+		
 		for (Map.Entry<String, Object> e : htblColNameValue.entrySet()) {
-			if (dbHelper.isIndexed(strTableName, e.getKey())) {
-				BitMap colBitMap = new BitMap(strTableName, e.getKey(), dbHelper, queryManager);
-				colBitMap.insertIntoBitMap((Comparable<Object>) e.getValue(), recordTableIndex, true);
-			}
+			if (dbHelper.isIndexed(strTableName, e.getKey()))
+				queryManager.insertIntoBitMap(strTableName, e.getKey(), e.getValue(), insertedIndex);
 		}
 		return true;
 	}
@@ -344,41 +266,9 @@ public class DBApp {
 				throw new DBAppException("The type of ( " + value + " ) is not right, must be " + type);
 		}
 		// all types are now right
-
-		int start_read = 0, start_write = 0;
-		int end_read = table.getPageCount(), end_write = table.getPageCount();
-		Page writePage = new Page();
-		int recordIndex = 0, deleted = 0;
-		while (start_read < end_read) {
-			Page curPage = table.readPage(dbHelper.getPagePath(strTableName, start_read++));
-			Vector<Record> v = curPage.getPage();
-			for (int i = 0; i < curPage.getSize(); i++, recordIndex++) {
-				if (!dbHelper.matchRecord(v.get(i).getRecord(), htblColNameValue)) {
-					writePage.addRecord(v.get(i), dbHelper.getMaximumRowsCountInPage());
-					if (writePage.getSize() == dbHelper.getMaximumRowsCountInPage()) {
-						table.writePage(dbHelper.getPagePath(strTableName, start_write++), writePage);
-						writePage = new Page();
-					}
-				} else {
-					for (String colName : v.get(i).getRecord().keySet()) {
-						if (dbHelper.isIndexed(strTableName, colName)) {
-							BitMap colBitMap = new BitMap(strTableName, colName, dbHelper, queryManager);
-							colBitMap.deleteFromBitMap(recordIndex - deleted);
-						}
-					}
-					deleted++;
-				}
-			}
-		}
-		if (writePage.getSize() > 0)
-			table.writePage(dbHelper.getPagePath(strTableName, start_write++), writePage);
-
-		table.setPageCount(start_write);
-
-		while (start_write < end_write) { // delete extra pages
-			File file = new File(dbHelper.getPagePath(strTableName, start_write++));
-			file.delete();
-		}
+		QueryManager queryManager = new QueryManager(dbHelper);
+		System.out.println("Wait mada fa");
+		queryManager.deleteFromTable(strTableName, htblColNameValue);
 	}
 
 	public Iterator<Record> selectFromTable(SQLTerm[] arrSQLTerms, String[] strarrOperators) throws DBAppException {

@@ -164,6 +164,8 @@ public class QueryManager {
 			sqlTerms[idx++] = new SQLTerm(tableName, e.getKey(), "=", e.getValue());
 		}
 		String[] operators = new String[htblColNameValue.size() - 1];
+		for(int i = 0; i < operators.length; i++)
+			operators[i] = "AND";
 		
 		String bits = "";
 		try {
@@ -176,9 +178,7 @@ public class QueryManager {
 		int maximumRowsCountInPage = dbHelper.getMaximumRowsCountInPage();
 		Table table = new Table(tableName, dbHelper);
 		
-		int deleted = 0;
-		
-		int pc = 0;
+		int deleted = 0, pc = 0;
 		Page currPage = table.readPage(dbHelper.getPagePath(tableName, pc));
 		for (int i = 0; i < bits.length(); i++) {
 			if (bits.charAt(i) == '0')
@@ -195,7 +195,8 @@ public class QueryManager {
 							deleteFromBitMap(tableName, colName, i - deleted);
 						}
 					deleted++;
-					currPage = table.readPage(dbHelper.getPagePath(tableName, pc));
+					if(i < bits.length() - 1)
+						currPage = table.readPage(dbHelper.getPagePath(tableName, pc));
 				}
 			} catch (DBAppException e) {
 				e.printStackTrace(System.err);

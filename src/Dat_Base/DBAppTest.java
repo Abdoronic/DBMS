@@ -95,7 +95,7 @@ public class DBAppTest {
 	public static void main(String[] args) throws DBAppException, IOException {
 		DBApp db = new DBApp();
 
-//		testCreation(db);
+		testCreation(db);
 
 		printPage(db, "Student", 0);
 		printIndexPage(db, "Student", "id", 0);
@@ -103,15 +103,10 @@ public class DBAppTest {
 
 		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
 
-		htblColNameValue.clear();
-		htblColNameValue.put("name", "Zaky Noor");
-		db.deleteFromTable("Student", htblColNameValue);
-
-		printPage(db, "Student", 0);
-		printIndexPage(db, "Student", "id", 0);
-		printIndexPage(db, "Student", "gpa", 0);
-
-//		
+//		htblColNameValue.clear();
+//		htblColNameValue.put("id", 2343432);
+//		db.deleteFromTable("Student", htblColNameValue);
+//	
 //		htblColNameValue.clear();
 //		htblColNameValue.put("id", 2343223);
 //		db.deleteFromTable("Student", htblColNameValue);
@@ -123,10 +118,15 @@ public class DBAppTest {
 //		htblColNameValue.clear();
 //		htblColNameValue.put("id", 23498);
 //		db.deleteFromTable("Student", htblColNameValue);
-//		
-//		htblColNameValue.clear();
-//		htblColNameValue.put("id", 78452);
-//		db.deleteFromTable("Student", htblColNameValue);
+
+		htblColNameValue.clear();
+		htblColNameValue.put("id", 2343223);
+		htblColNameValue.put("gpa", 0.95);
+		db.deleteFromTable("Student", htblColNameValue);
+		
+		printPage(db, "Student", 0);
+		printIndexPage(db, "Student", "id", 0);
+		printIndexPage(db, "Student", "gpa", 0);
 
 		SQLTerm[] sqlTerms;
 		sqlTerms = new SQLTerm[2];

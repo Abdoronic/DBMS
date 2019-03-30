@@ -16,36 +16,17 @@ public class IndexPage implements Serializable {
 		this.indexPage = indexPage;
 	}
 
-	public boolean addValueToIndex(Comparable<Object> insertedValue, int insertedIndex, int tableSize,
-			int maxPairsPerPage, boolean newRecordAdded) {
-		if (paddBits(insertedIndex, insertedValue, newRecordAdded))
-			return true; // will need to continue padding zeroes to the rest of pages
-		IndexPair newIndexPair = new IndexPair(insertedValue, tableSize);
-		newIndexPair.set(insertedIndex);
-		if (indexPage.isEmpty())
-			return indexPage.add(newIndexPair);
-		for (int i = 0; i < indexPage.size(); i++) {
-			if (newIndexPair.compareTo(indexPage.get(i)) < 0) {
-				indexPage.add(i, newIndexPair);
-				return true;
-			}
-		}
-		if (indexPage.size() < maxPairsPerPage)
-			return indexPage.add(newIndexPair);
-		return false;
-	}
-
 	public boolean paddBits(int index, Comparable<Object> insertedValue, boolean newRecordAdded) {
 		boolean exist = false;
 		for (int i = 0; i < indexPage.size(); i++) {
 			if (indexPage.get(i).getValue().compareTo(insertedValue) == 0) {
-				if(newRecordAdded)
+				if (newRecordAdded)
 					indexPage.get(i).insert(index, "1");
 				else
 					indexPage.get(i).set(index);
 				exist = true;
 			} else {
-				if(newRecordAdded)
+				if (newRecordAdded)
 					indexPage.get(i).insert(index, "0");
 			}
 		}
@@ -57,38 +38,38 @@ public class IndexPage implements Serializable {
 		for (int i = 0; i < indexPage.size(); i++) {
 			indexPage.get(i).delete(index);
 			boolean hasOne = false;
-			for(char c : indexPage.get(i).getBits().toCharArray()) {
-				if(c == '1') {
+			for (char c : indexPage.get(i).getBits().toCharArray()) {
+				if (c == '1') {
 					hasOne = true;
 					break;
 				}
 			}
-			if(!hasOne) {
-				indexPage.remove(i);
+			if (!hasOne) {
+				indexPage.remove(i--);
 				removed = true;
 			}
 		}
 		return removed;
 	}
-	
+
 	public void encode() {
-		for(int i = 0; i < indexPage.size(); i++)
+		for (int i = 0; i < indexPage.size(); i++)
 			indexPage.get(i).encode();
 	}
-	
+
 	public void decode() {
-		for(int i = 0; i < indexPage.size(); i++)
+		for (int i = 0; i < indexPage.size(); i++)
 			indexPage.get(i).decode();
 	}
 
 	public Vector<IndexPair> getIndexPage() {
 		return indexPage;
 	}
-	
+
 	public IndexPair getIndexPair(int index) {
 		return indexPage.get(index);
 	}
-	
+
 	public int getSize() {
 		return indexPage.size();
 	}

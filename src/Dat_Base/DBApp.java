@@ -1,6 +1,5 @@
 package Dat_Base;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -194,20 +193,20 @@ public class DBApp {
 
 	public boolean insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException {
-		
+
 		Table table = dbHelper.getTable(strTableName);
 		if (table == null)
 			throw new DBAppException("Table is not found!");
-		
+
 		String primaryKeyColName = "";
-		
+
 		try {
 			primaryKeyColName = dbHelper.getTableKey(strTableName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		if(!htblColNameValue.containsKey(primaryKeyColName))
+
+		if (!htblColNameValue.containsKey(primaryKeyColName))
 			throw new DBAppException("Primary Key <" + primaryKeyColName + "> is not provided");
 
 		Hashtable<String, Object> colTableInfo = null;
@@ -225,18 +224,17 @@ public class DBApp {
 			if (!value.getClass().equals(type.getClass()))
 				throw new DBAppException("The type of ( " + value + " ) is not right, must be " + type);
 		}
-		
+
 		// Valid Data to be inserted
-		
+
 		htblColNameValue.put("TouchDate", dbHelper.currentDate());
 		Record record = new Record(primaryKeyColName, htblColNameValue);
-		
+
 		int insertedIndex = queryManager.insertIntoTable(strTableName, record);
-		
-		System.err.println(insertedIndex);
-		
-		if(insertedIndex == -1) throw new DBAppException("Duplicate Key in Record " + record.toString());
-		
+
+		if (insertedIndex == -1)
+			throw new DBAppException("Duplicate Key in Record " + record.toString());
+
 		for (Map.Entry<String, Object> e : htblColNameValue.entrySet()) {
 			if (dbHelper.isIndexed(strTableName, e.getKey()))
 				queryManager.insertIntoBitMap(strTableName, e.getKey(), e.getValue(), insertedIndex);
@@ -267,7 +265,6 @@ public class DBApp {
 		}
 		// all types are now right
 		QueryManager queryManager = new QueryManager(dbHelper);
-		System.out.println("Wait mada fa");
 		queryManager.deleteFromTable(strTableName, htblColNameValue);
 	}
 
@@ -275,7 +272,7 @@ public class DBApp {
 		if (arrSQLTerms.length == 0)
 			throw new DBAppException("Invalid Where Clause");
 		String tableName = arrSQLTerms[0].getTableName();
-		if(!tables.containsKey(tableName))
+		if (!tables.containsKey(tableName))
 			throw new DBAppException("Table Does not exist");
 		Hashtable<String, Object> htbColNameValue = null;
 		try {
@@ -293,26 +290,28 @@ public class DBApp {
 						"Column: " + arrSQLTerms[i].getColumnName() + " does not exist in Table: " + tableName);
 		}
 		Vector<Record> result = new Vector<>();
-		
+
 		Table table = dbHelper.getTable(tableName);
-		
-		if(table.getPageCount() == 0) return result.iterator();
-		
+
+		if (table.getPageCount() == 0)
+			return result.iterator();
+
 		QueryManager queryManager = new QueryManager(dbHelper);
-		
+
 		String bits = queryManager.getSearchSpace(arrSQLTerms, strarrOperators);
-		
+
 		int maximumRowsCountInPage = dbHelper.getMaximumRowsCountInPage();
-		
+
 		int pc = 0;
 		Page currPage = table.readPage(dbHelper.getPagePath(tableName, pc));
-		for(int i = 0; i < bits.length(); i++) {
-			if(bits.charAt(i) == '0') continue;
+		for (int i = 0; i < bits.length(); i++) {
+			if (bits.charAt(i) == '0')
+				continue;
 			int recordPage = i / maximumRowsCountInPage;
 			int recordIndex = i % maximumRowsCountInPage;
-			if(recordPage > pc)
+			if (recordPage > pc)
 				currPage = table.readPage(dbHelper.getPagePath(tableName, ++pc));
-			if(queryManager.verfiyWhereClause(arrSQLTerms, strarrOperators, currPage.getRecord(recordIndex)))
+			if (queryManager.verfiyWhereClause(arrSQLTerms, strarrOperators, currPage.getRecord(recordIndex)))
 				result.add(currPage.getRecord(recordIndex));
 		}
 		return result.iterator();
@@ -321,7 +320,7 @@ public class DBApp {
 	public DBHelper getDbHelper() {
 		return dbHelper;
 	}
-	
+
 	public QueryManager getQueryManager() {
 		return queryManager;
 	}

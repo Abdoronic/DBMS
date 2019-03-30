@@ -20,7 +20,7 @@ public class IndexPair implements Comparable<IndexPair>, Serializable {
 			res.append('0');
 		this.bits = res.toString();
 	}
-	
+
 	public IndexPair(Comparable<Object> value, int size, String bit) {
 		this.value = value;
 		StringBuilder res = new StringBuilder();
@@ -38,14 +38,12 @@ public class IndexPair implements Comparable<IndexPair>, Serializable {
 	}
 
 	public void insert(int index, String bit) {
-		System.out.println("Index: " + index + "String: " + bits);
 		if (index == bits.length())
 			bits += bit;
 		else if (index == 0)
 			bits = bit + bits;
 		else
 			bits = bits.substring(0, index) + bit + bits.substring(index, bits.length());
-		System.out.println("After: " + bits);
 	}
 
 	public void delete(int index) {

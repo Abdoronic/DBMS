@@ -38,6 +38,6 @@ public class Record implements Serializable, Comparable<Record> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public int compareTo(Record o) {
-		return ((Comparable<Object>)getPrimaryKey()).compareTo((Comparable<Object>)o.getPrimaryKey());
+		return ((Comparable<Object>) getPrimaryKey()).compareTo((Comparable<Object>) o.getPrimaryKey());
 	}
 }

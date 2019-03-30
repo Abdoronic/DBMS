@@ -67,7 +67,7 @@ public class DBHelper {
 		}
 		return tables;
 	}
-	
+
 	public Table getTable(String tableName) {
 		Table table = null;
 		try {
@@ -75,10 +75,10 @@ public class DBHelper {
 			String[] tokens;
 			while (buffer.ready()) {
 				tokens = buffer.readLine().split(",");
-				if(tokens[0].equals(tableName)) {
+				if (tokens[0].equals(tableName)) {
 					table = new Table(tableName, this);
 					break;
-				} 
+				}
 			}
 			buffer.close();
 		} catch (IOException e) {
@@ -87,32 +87,34 @@ public class DBHelper {
 		}
 		return table;
 	}
-	
+
 	public int getTableSize(String tableName) {
 		Table table = getTable(tableName);
-		if(table != null)
+		if (table != null)
 			return calcTableSize(table);
 		return -1;
 	}
-	
+
 	public int calcTableSize(Table table) {
-		if(table.getPageCount() > 0) {
+		if (table.getPageCount() > 0) {
 			int tableSize = (table.getPageCount() - 1) * getMaximumRowsCountInPage();
 			tableSize += table.readPage(getPagePath(table.getTableName(), table.getPageCount() - 1)).getSize();
 			return tableSize;
 		}
 		return 0;
 	}
-	
+
 	public int getIndexSize(String tableName, String colName) {
 		BitMap bitMap = new BitMap(tableName, colName, this);
 		return calcIndexSizeSize(bitMap);
 	}
-	
+
 	public int calcIndexSizeSize(BitMap bitMap) {
-		if(bitMap.getPageCount() > 0) {
+		if (bitMap.getPageCount() > 0) {
 			int indexSize = (bitMap.getPageCount() - 1) * getBitmapSize();
-			indexSize += bitMap.readPage(getIndexPagePath(bitMap.getTableName(), bitMap.getColName(), bitMap.getPageCount() - 1)).getSize();
+			indexSize += bitMap
+					.readPage(getIndexPagePath(bitMap.getTableName(), bitMap.getColName(), bitMap.getPageCount() - 1))
+					.getSize();
 			return indexSize;
 		}
 		return 0;

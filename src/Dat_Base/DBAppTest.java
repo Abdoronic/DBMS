@@ -15,7 +15,7 @@ public class DBAppTest {
 		db.createTable(strTableName, "id", htblColNameType);
 		System.out.println("###############");
 		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
-		
+
 		db.createBitmapIndex(strTableName, "id");
 		db.createBitmapIndex(strTableName, "gpa");
 
@@ -48,7 +48,7 @@ public class DBAppTest {
 //		System.out.println("-----------------");
 //		printIndexPage(db, "Student", "id", 0);
 //		System.out.println("-----------------");
-		
+
 		System.out.println(db.getTables().get(strTableName).getPageCount());
 		htblColNameValue.put("id", new Integer(23498));
 		htblColNameValue.put("name", new String("John Noor"));
@@ -63,12 +63,12 @@ public class DBAppTest {
 		db.insertIntoTable(strTableName, htblColNameValue);
 //		System.out.println(db.getTables().get(strTableName).getPageCount());
 //		System.out.println("###############");
-		
-		htblColNameValue.clear();
-		htblColNameValue.put("name", "Zaky Noor");
-		
-		db.deleteFromTable(strTableName, htblColNameValue);
-		
+
+//		htblColNameValue.clear();
+//		htblColNameValue.put("name", "Zaky Noor");
+//		
+//		db.deleteFromTable(strTableName, htblColNameValue);
+
 //		htblColNameValue.clear();
 //		htblColNameValue.put("gpa", 0.69);
 //		
@@ -95,17 +95,22 @@ public class DBAppTest {
 	public static void main(String[] args) throws DBAppException, IOException {
 		DBApp db = new DBApp();
 
-		testCreation(db);
+//		testCreation(db);
 
 		printPage(db, "Student", 0);
 		printIndexPage(db, "Student", "id", 0);
 		printIndexPage(db, "Student", "gpa", 0);
-		
-//		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
-		
-//		htblColNameValue.clear();
-//		htblColNameValue.put("id", 2343432);
-//		db.deleteFromTable("Student", htblColNameValue);
+
+		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
+
+		htblColNameValue.clear();
+		htblColNameValue.put("name", "Zaky Noor");
+		db.deleteFromTable("Student", htblColNameValue);
+
+		printPage(db, "Student", 0);
+		printIndexPage(db, "Student", "id", 0);
+		printIndexPage(db, "Student", "gpa", 0);
+
 //		
 //		htblColNameValue.clear();
 //		htblColNameValue.put("id", 2343223);
@@ -122,22 +127,22 @@ public class DBAppTest {
 //		htblColNameValue.clear();
 //		htblColNameValue.put("id", 78452);
 //		db.deleteFromTable("Student", htblColNameValue);
-		
-//		SQLTerm[] sqlTerms;
-//		sqlTerms = new SQLTerm[2];
-//		
-//		sqlTerms[0] = new SQLTerm("Student", "name", "=", "Zaky Noor");
-//		sqlTerms[1] = new SQLTerm("Student", "gpa", ">=", new Double( 4.0 ));
+
+		SQLTerm[] sqlTerms;
+		sqlTerms = new SQLTerm[2];
+
+		sqlTerms[0] = new SQLTerm("Student", "name", "!=", "Zaky Noor");
+		sqlTerms[1] = new SQLTerm("Student", "gpa", ">", new Double(0.0));
 //		sqlTerms[2] = new SQLTerm("Student", "gpa", "=", new Double( 0.69 ));
 //		sqlTerms[3] = new SQLTerm("Student", "gpa", "!=", new Double( 0.95));
-		
-		//01110
-		
-//		String[] operators = new String[1];
-//		operators[0] = "OR"; 
+
+		// 01110
+
+		String[] operators = new String[1];
+		operators[0] = "AND";
 //		operators[1] = "OR"; 
 //		operators[2] = "OR"; 
-		
+
 //		Hashtable<String, Object> htblColNameValue = new Hashtable<>();
 //		htblColNameValue.put("id", new Integer(888));
 //		htblColNameValue.put("name", new String("John Noor"));
@@ -146,22 +151,22 @@ public class DBAppTest {
 //		Record record = new Record("id", htblColNameValue);
 //		htblColNameValue.clear();
 //		QueryManager queryManager = new QueryManager(db.getDbHelper());
-		
-//		Iterator<Record> it = db.selectFromTable(sqlTerms, operators);
-//		while(it.hasNext())
-//			System.out.println(it.next());
-		
+
+		Iterator<Record> it = db.selectFromTable(sqlTerms, operators);
+		while (it.hasNext())
+			System.out.println(it.next());
+
 //		printPage(db, "Student", 0);
 //		printIndexPage(db, "Student", "id", 0);
 //		printIndexPage(db, "Student", "gpa", 0);
 
 //		PositionPair pp1 = queryManager.searchTablePages("Student", 2343223);
-		
+
 //		PositionPair pp2 = queryManager.searchIndexPages("Student", "gpa", 50.7);
-		
+
 //		System.out.println(pp1);
 //		System.out.println(pp2);
-		
+
 //		System.out.println(db.getTables());
 //		Hashtable<String, String> table1 = new Hashtable<>();
 //		table1.put("x", "java.lang.Integer");

@@ -202,11 +202,12 @@ public class BitMap {
 		int startPushing = -1;
 		for (int i = 0; i < indexPageCount; i++) {
 			IndexPage currPage = readPage(dbHelper.getIndexPagePath(tableName, colName, i));
-			if(currPage.deleteBits(insertedIndex) && startPushing == -1)
+			boolean deleted = currPage.deleteBits(insertedIndex);
+			if (deleted && startPushing == -1)
 				startPushing = i;
 			writePage(dbHelper.getIndexPagePath(tableName, colName, i), currPage);
 		}
-		if(startPushing != -1)
+		if (startPushing != -1)
 			pushUp(startPushing, dbHelper.getBitmapSize());
 		return true;
 	}

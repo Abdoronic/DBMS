@@ -51,7 +51,7 @@ public class Page implements Serializable {
 	public Vector<Record> getPage() {
 		return page;
 	}
-	
+
 	public Record getRecord(int index) {
 		return page.get(index);
 	}

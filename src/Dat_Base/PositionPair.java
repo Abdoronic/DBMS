@@ -2,12 +2,12 @@ package Dat_Base;
 
 public class PositionPair {
 	private int pageNumber, recordIndex;
-	
+
 	public PositionPair(int pageNumber, int recordIndex) {
 		this.pageNumber = pageNumber;
 		this.recordIndex = recordIndex;
 	}
-	
+
 	public int getPageNumber() {
 		return pageNumber;
 	}
@@ -28,5 +28,5 @@ public class PositionPair {
 	public String toString() {
 		return "PositionPair [pageNumber=" + pageNumber + ", recordIndex=" + recordIndex + "]";
 	}
-	
+
 }

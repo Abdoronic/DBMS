@@ -144,7 +144,6 @@ public class Table {
 		newPage.getPage().remove(recordIndex);
 		writePage(dbHelper.getPagePath(tableName, pageNumber), newPage);
 		pushUp(pageNumber, dbHelper.getMaximumRowsCountInPage());
-		System.out.println("Hereeeee");
 	}
 
 	public String getTableName() {

@@ -160,21 +160,18 @@ public class QueryManager {
 	public void deleteFromTable(String tableName, Hashtable<String, Object> htblColNameValue) {
 		SQLTerm[] sqlTerms = new SQLTerm[htblColNameValue.size()];
 		int idx = 0;
-		System.out.println("Hereeeee");
 		for (Map.Entry<String, Object> e : htblColNameValue.entrySet()) {
 			sqlTerms[idx++] = new SQLTerm(tableName, e.getKey(), "=", e.getValue());
 		}
 		String[] operators = new String[htblColNameValue.size() - 1];
 		
 		String bits = "";
-		System.out.println("Wait mada faaaaaa");
 		try {
 			bits = getSearchSpace(sqlTerms, operators);
 		} catch (DBAppException e) {
 			System.err.println("Oops something went wrong!");
 			e.printStackTrace(System.err);
 		}
-		System.out.println("Hereeeee");
 		
 		int maximumRowsCountInPage = dbHelper.getMaximumRowsCountInPage();
 		Table table = new Table(tableName, dbHelper);
@@ -183,7 +180,6 @@ public class QueryManager {
 		
 		int pc = 0;
 		Page currPage = table.readPage(dbHelper.getPagePath(tableName, pc));
-		System.out.println(bits);
 		for (int i = 0; i < bits.length(); i++) {
 			if (bits.charAt(i) == '0')
 				continue;
@@ -195,16 +191,16 @@ public class QueryManager {
 				if (verfiyWhereClause(sqlTerms, operators, currPage.getRecord(recordIndex))) {
 					table.delete(recordPage, recordIndex);
 					for (String colName : currPage.getRecord(recordIndex).getRecord().keySet())
-						if (dbHelper.isIndexed(tableName, colName))
-							deleteFromBitMap(tableName, colName, recordIndex - deleted);
+						if (dbHelper.isIndexed(tableName, colName)) {
+							deleteFromBitMap(tableName, colName, i - deleted);
+						}
 					deleted++;
+					currPage = table.readPage(dbHelper.getPagePath(tableName, pc));
 				}
 			} catch (DBAppException e) {
-				System.err.println("Oops Something went wrong");
 				e.printStackTrace(System.err);
 			}
 		}
-		System.out.println("Hereeeee");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -215,9 +211,9 @@ public class QueryManager {
 		return bitMap.insert(pos.getPageNumber(), pos.getRecordIndex(), insertedValueKey, insertedIndex, true);
 	}
 
-	public boolean deleteFromBitMap(String tableName, String colName, int insertedIndex) {
+	public boolean deleteFromBitMap(String tableName, String colName, int deletedIndex) {
 		BitMap bitMap = new BitMap(tableName, colName, dbHelper);
-		return bitMap.delete(insertedIndex);
+		return bitMap.delete(deletedIndex);
 	}
 
 	public int getPrecedence(String operator) {
@@ -291,8 +287,8 @@ public class QueryManager {
 		
 		if (!dbHelper.isIndexed(tableName, colName))
 			return new IndexPair(null, tableSize, "1").getBits();
-		int indexSize = dbHelper.getIndexSize(tableName, colName);
 
+		int indexSize = dbHelper.getIndexSize(tableName, colName);
 		BitMap bitMap = new BitMap(tableName, colName, dbHelper);
 
 		PositionPair pos = searchIndexPages(tableName, colName, sqlTerm.getObjValue());
@@ -304,9 +300,9 @@ public class QueryManager {
 
 		String operator = sqlTerm.getOperator();
 
-		boolean isEqual = currIndexPage.getIndexPair(recordIndex).getValue()
-				.compareTo((Comparable<Object>) sqlTerm.getObjValue()) == 0;
 		boolean isGreatest = recordIndex >= currIndexPage.getSize();
+		boolean isEqual = !isGreatest ? currIndexPage.getIndexPair(recordIndex).getValue()
+				.compareTo((Comparable<Object>) sqlTerm.getObjValue()) == 0 : false;
 
 		int maxRowsPerPage = dbHelper.getBitmapSize();
 
@@ -314,12 +310,12 @@ public class QueryManager {
 
 		if (operator.equals("=")) {
 			if (isGreatest || !isEqual)
-				return new IndexPair(null, indexSize).getBits();
+				return new IndexPair(null, tableSize).getBits();
 			return currIndexPage.getIndexPair(recordIndex).getBits();
 		} else if (operator.equals("!=")) {
 			if (isGreatest || !isEqual)
-				return new IndexPair(null, indexSize, "1").getBits();
-			String a = new IndexPair(null, indexSize, "1").getBits();
+				return new IndexPair(null, tableSize, "1").getBits();
+			String a = new IndexPair(null, tableSize, "1").getBits();
 			String b = currIndexPage.getIndexPair(recordIndex).getBits();
 			return IndexPair.xor(a, b);
 		} else if (operator.equals("<=")) {
@@ -327,7 +323,7 @@ public class QueryManager {
 				--end;
 		} else if (operator.equals(">=")) {
 			if (isGreatest)
-				return new IndexPair(null, indexSize).getBits();
+				return new IndexPair(null, tableSize).getBits();
 			start = end - 1;
 			end = indexSize;
 			pc = start / maxRowsPerPage;
@@ -335,12 +331,12 @@ public class QueryManager {
 			--end;
 		} else if (operator.equals(">")) {
 			if (isGreatest)
-				return new IndexPair(null, indexSize).getBits();
+				return new IndexPair(null, tableSize).getBits();
 			start = end - 1;
 			end = indexSize;
 			pc = start / maxRowsPerPage;
 		}
-		String res = new IndexPair(null, indexSize).getBits();
+		String res = new IndexPair(null, tableSize).getBits();
 		currIndexPage = bitMap.readPage(dbHelper.getIndexPagePath(tableName, colName, pc));
 		for (int i = start; i < end; i++) {
 			if (i == maxRowsPerPage)
